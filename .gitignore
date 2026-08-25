@@ -1,0 +1,15 @@
+# 창업계획서 커밋 제외
+*.hwp
+
+# AI 관련 파일 커밋 제외
+.agents/
+*.zip
+
+web_test/
+recommend_from_profile/
+
+.env
+
+*.md
+
+etc/
