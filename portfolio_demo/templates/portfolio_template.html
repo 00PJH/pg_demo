@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ portfolio.overview.title }} — DiffStack 포트폴리오</title>
+  <meta name="description" content="AI/ML 엔지니어 실무 문제 해결 포트폴리오 | DiffStack Engine by plAI-ground" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { 
+            sans: ['Pretendard', 'Inter', 'sans-serif'], 
+            mono: ['JetBrains Mono', 'monospace'] 
+          },
+          colors: {
+            brand: { 50:'#f0f9ff', 400:'#38bdf8', 500:'#0ea5e9', 600:'#0284c7', 900:'#0c4a6e' },
+            surface: { 900:'#0a0f1e', 800:'#0f172a', 700:'#1e293b', 600:'#334155' },
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.6s ease-out forwards',
+            'slide-up': 'slideUp 0.5s ease-out forwards',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4,0,0.6,1) infinite',
+          },
+          keyframes: {
+            fadeIn: { '0%': { opacity:'0' }, '100%': { opacity:'1' } },
+            slideUp: { '0%': { opacity:'0', transform:'translateY(20px)' }, '100%': { opacity:'1', transform:'translateY(0)' } },
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #0a0f1e; color: #e2e8f0; font-family: 'Pretendard', 'Inter', sans-serif; }
+    .card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; border-radius: 1rem; transition: border-color 0.3s, box-shadow 0.3s; }
+    .card:hover { border-color: #38bdf8; box-shadow: 0 0 24px rgba(56,189,248,0.12); }
+    .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; font-family: 'Pretendard', 'Inter', sans-serif; }
+    .badge-blue { background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
+    .badge-green { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+    .badge-purple { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+    .badge-red { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+    .badge-yellow { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+    .hash-text { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #64748b; letter-spacing: 0.05em; word-break: break-all; }
+    .section-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #38bdf8; margin-bottom: 0.75rem; }
+    .stat-number { font-size: 2.25rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .diff-block { background: #0d1117; border: 1px solid #30363d; border-radius: 0.5rem; padding: 1rem 1.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+    .diff-add { color: #3fb950; }
+    .diff-remove { color: #f85149; }
+    .diff-neutral { color: #8b949e; }
+    .perf-bar-bg { background: #1e293b; border-radius: 9999px; height: 8px; overflow: hidden; }
+    .perf-bar-fill { height: 8px; border-radius: 9999px; transition: width 1s ease-out; }
+    .glow-blue { box-shadow: 0 0 40px rgba(56,189,248,0.08); }
+    .grid-section { animation: slideUp 0.6s ease-out forwards; }
+    .separator { border-color: #1e293b; }
+    .integrity-verified { display: flex; align-items: center; gap: 0.4rem; }
+    .integrity-verified::before { content: ''; width: 6px; height: 6px; background: #34d399; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #34d399; animation: pulse 2s infinite; }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+
+  <!-- ─── 배경 그리드 패턴 ────────────────────────────────────────────── -->
+  <div class="fixed inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px); background-size: 60px 60px;"></div>
+
+  <main class="relative z-10 max-w-5xl mx-auto px-4 py-16 space-y-8">
+
+    <!-- ─── 카드 1: 프로젝트 개요 및 헤더 ─────────────────────────────── -->
+    <section class="card p-8 glow-blue grid-section">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div class="flex-1 min-w-0">
+          <p class="section-label">🤖 AI 실무 문제 해결 포트폴리오 — DiffStack Engine</p>
+          <h1 class="text-2xl sm:text-3xl font-bold text-white leading-tight mb-3">
+            {{ portfolio.overview.title }}
+          </h1>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <span class="badge badge-blue">⚡ 기반 모델: {{ portfolio.overview.base_model }}</span>
+            <span class="badge badge-purple">🎯 수행 태스크: {{ portfolio.overview.task_type }}</span>
+            <span class="badge badge-green">✅ 데이터 무결성 검증 완료</span>
+          </div>
+        </div>
+        <!-- SHA-256 워터마크 -->
+        <div class="text-right space-y-1 min-w-0 max-w-xs">
+          <div class="integrity-verified justify-end">
+            <span class="text-xs text-emerald-400 font-semibold font-mono">SHA-256 무결성 해시</span>
+          </div>
+          <div class="hash-text">{{ portfolio.verification.integrity_hash }}</div>
+          <p class="text-xs text-slate-500 font-mono mt-1">
+            발급 일시: {{ portfolio.verification.generated_at[:19] | replace("T", " ") }} UTC
+          </p>
+        </div>
+      </div>
+
+      <hr class="separator my-6" />
+
+      <!-- 환경 메타데이터 영역 -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <p class="section-label">💻 하드웨어 환경</p>
+          <p class="text-sm text-slate-300 font-mono">{{ portfolio.verification.hardware }}</p>
+        </div>
+        <div>
+          <p class="section-label">⏱ 총 학습 소요 시간</p>
+          <p class="text-sm text-slate-300 font-mono">{{ portfolio.verification.total_training_time }}</p>
+        </div>
+        <div>
+          <p class="section-label">🛡 검증 엔진</p>
+          <p class="text-sm text-slate-300 font-mono">plAI-ground / DiffStack v1.0</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- ─── 카드 2: 데이터 엔지니어링 파이프라인 ────────────────────── -->
+      <section class="card p-7 grid-section" style="animation-delay:0.1s">
+        <p class="section-label">📊 데이터 엔지니어링 파이프라인</p>
+        <h2 class="text-lg font-semibold text-white mb-2">{{ portfolio.data_engineering.dataset_name }}</h2>
+        <p class="text-sm text-slate-300 leading-relaxed mb-6 bg-slate-900/60 p-3.5 rounded-lg border border-slate-700/60">
+          {{ portfolio.data_engineering.data_efficiency_impact }}
+        </p>
+
+        <div class="space-y-3 mb-2">
+          <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">적용된 전처리 기법</p>
+          {% for technique in portfolio.data_engineering.preprocessing_techniques %}
+          <div class="flex items-start gap-2.5">
+            <span class="text-brand-400 mt-1 text-xs">▸</span>
+            <span class="text-sm text-slate-300">{{ technique }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ─── 카드 3: 성능 벤치마크 델타 (Baseline vs Optimized) ─────── -->
+      <section class="card p-7 grid-section" style="animation-delay:0.2s">
+        <p class="section-label">📈 성능 벤치마크 델타 (개선 성과)</p>
+        <h2 class="text-lg font-semibold text-white mb-4">{{ portfolio.benchmarks.evaluation_metric }}</h2>
+
+        <!-- Baseline vs Optimized 막대 비교 -->
+        <div class="space-y-4 mb-6">
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">기준 성능 (Baseline)</span>
+              <span class="text-slate-300 font-mono font-medium">{{ portfolio.benchmarks.baseline_performance }}</span>
+            </div>
+            <div class="perf-bar-bg">
+              <div class="perf-bar-fill" style="width: {{ (portfolio.benchmarks.baseline_performance * 100)|round(1) }}%; background: linear-gradient(90deg, #64748b, #94a3b8);"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-brand-400 font-semibold">최적화 성능 (Optimized)</span>
+              <span class="text-brand-400 font-mono font-bold">{{ portfolio.benchmarks.optimized_performance }}</span>
+            </div>
+            <div class="perf-bar-bg">
+              <div class="perf-bar-fill" style="width: {{ (portfolio.benchmarks.optimized_performance * 100)|round(1) }}%; background: linear-gradient(90deg, #0ea5e9, #38bdf8);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 향상률 뱃지 -->
+        <div class="flex items-center gap-3 mb-5">
+          <span class="stat-number">{{ portfolio.benchmarks.improvement_rate }}</span>
+          <span class="badge badge-green">Δ 성능 향상률</span>
+        </div>
+
+        <!-- 적용된 최적화 기법 목록 -->
+        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2.5">적용된 최적화 기법</p>
+        <div class="flex flex-wrap gap-2">
+          {% for method in portfolio.benchmarks.optimization_methods %}
+          <span class="badge badge-purple text-xs">{{ method }}</span>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <!-- ─── 카드 4: 장애 해결 및 트러블슈팅 서사 ──────────────────── -->
+    <section class="card p-7 grid-section" style="animation-delay:0.3s">
+      <p class="section-label">🔥 장애 해결 및 트러블슈팅 서사 (STAR 기반 검증)</p>
+      <div class="flex flex-wrap items-center gap-3 mb-6">
+        <h2 class="text-lg font-semibold text-white">오류 복구 및 디버깅:</h2>
+        <span class="badge badge-red font-mono">{{ portfolio.troubleshooting.error_type }}</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
+        <div class="space-y-2">
+          <p class="section-label">🔍 상황 및 근본 원인 분석</p>
+          <p class="text-sm text-slate-300 leading-relaxed bg-slate-900/40 p-3.5 rounded-lg border border-slate-700/40">
+            {{ portfolio.troubleshooting.root_cause }}
+          </p>
+        </div>
+        <div class="space-y-2">
+          <p class="section-label">🛠 조치 및 해결 코드 Diff</p>
+          <div class="diff-block">{% set lines = portfolio.troubleshooting.resolution_diff.split('\n') %}{% for line in lines %}{% if line.startswith('+') %}<span class="diff-add">{{ line }}</span>
+{% elif line.startswith('-') %}<span class="diff-remove">{{ line }}</span>
+{% else %}<span class="diff-neutral">{{ line }}</span>
+{% endif %}{% endfor %}</div>
+        </div>
+        <div class="space-y-2">
+          <p class="section-label">💡 엔지니어링 교훈 & 인사이트</p>
+          <p class="text-sm text-slate-300 leading-relaxed bg-slate-900/40 p-3.5 rounded-lg border border-slate-700/40">
+            {{ portfolio.troubleshooting.engineering_takeaway }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 푸터 ──────────────────────────────────────────────────────────── -->
+    <footer class="text-center py-6 space-y-1.5">
+      <p class="text-xs text-slate-500">생성 엔진: <span class="text-brand-400 font-mono font-semibold">plAI-ground / DiffStack Engine</span></p>
+      <p class="hash-text text-center">무결성 검증 키: {{ portfolio.verification.integrity_hash[:32] }}...</p>
+    </footer>
+
+  </main>
+
+  <script>
+    // 진입 시 성능 비교 막대 애니메이션
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.perf-bar-fill').forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => { bar.style.width = w; }, 300);
+      });
+    });
+  </script>
+</body>
+</html>

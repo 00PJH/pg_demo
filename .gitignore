@@ -13,3 +13,7 @@ recommend_from_profile/
 *.md
 
 etc/
+
+# DiffStack Engine 런타임 데이터
+portfolio_demo/.telemetry/
+portfolio_demo/portfolio_output.html
