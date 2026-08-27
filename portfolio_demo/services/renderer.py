@@ -59,3 +59,8 @@ def render_portfolio(schema: PortfolioSchema, telemetry: dict) -> Path:
 
     _OUTPUT_FILE.write_text(html, encoding="utf-8")
     return _OUTPUT_FILE
+
+
+# 호환성을 위한 alias
+render_portfolio_html = render_portfolio
+

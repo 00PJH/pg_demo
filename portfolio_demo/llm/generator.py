@@ -129,3 +129,8 @@ def generate_portfolio(telemetry: dict[str, Any]) -> PortfolioSchema:
     except Exception as e:
         print(f"[LLM] ⚠️  Gemini 호출 실패 ({e}). 한국어 표준 Mock 데이터로 안전하게 전환합니다.")
         return PortfolioSchema.model_validate(_MOCK_DATA)
+
+
+# 호환성을 위한 alias
+generate_portfolio_json = generate_portfolio
+

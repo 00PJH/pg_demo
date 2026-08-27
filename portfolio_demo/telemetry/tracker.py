@@ -14,13 +14,19 @@ from .git_tracker import get_git_diff
 
 _TELEMETRY_DIR = Path(__file__).parent.parent / ".telemetry"
 _ERROR_FILE = _TELEMETRY_DIR / "last_error.json"
+_HISTORY_FILE = _TELEMETRY_DIR / "error_history.json"
 _RAW_FILE = _TELEMETRY_DIR / "raw_telemetry.json"
 
 
 class DiffStackTracker:
     """런타임 데이터(데이터셋 통계, 벤치마크, 에러) 수집 및 덤프."""
 
-    def __init__(self) -> None:
+    def __init__(self, project_name: str = "", task_type: str = "", **kwargs: Any) -> None:
+        self._overview: dict[str, Any] = {
+            "project_name": project_name,
+            "task_type": task_type,
+            **kwargs,
+        }
         self._dataset: dict[str, Any] = {}
         self._benchmarks: dict[str, Any] = {}
 
@@ -28,7 +34,7 @@ class DiffStackTracker:
         self,
         raw_len: int,
         processed_len: int,
-        notes: str = "",
+        notes: str | list[str] = "",
         avg_len_before: float = 0.0,
         avg_len_after: float = 0.0,
     ) -> None:
@@ -38,7 +44,7 @@ class DiffStackTracker:
         Args:
             raw_len: 전처리 전 샘플 수.
             processed_len: 전처리 후 샘플 수.
-            notes: 전처리 기법 설명.
+            notes: 전처리 기법 설명 (문자열 또는 리스트).
             avg_len_before: 전처리 전 평균 시퀀스 길이.
             avg_len_after: 전처리 후 평균 시퀀스 길이.
         """
@@ -56,34 +62,37 @@ class DiffStackTracker:
 
     def log_benchmarks(
         self,
-        baseline_dict: dict[str, Any],
-        final_dict: dict[str, Any],
-        params_dict: dict[str, Any],
+        baseline_dict: dict[str, Any] | None = None,
+        final_dict: dict[str, Any] | None = None,
+        params_dict: dict[str, Any] | None = None,
+        baseline: dict[str, Any] | None = None,
+        final: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
     ) -> None:
         """
         파인튜닝 전후 성능 메트릭과 하이퍼파라미터를 기록.
-
-        Args:
-            baseline_dict: 베이스라인 성능 지표 (e.g. {"loss": 2.34, "f1": 0.41}).
-            final_dict: 최종 성능 지표 (e.g. {"loss": 1.12, "f1": 0.78}).
-            params_dict: 사용된 하이퍼파라미터 (e.g. {"lr": 2e-5, "epochs": 3}).
+        인자 이름으로 baseline/final/params 또는 baseline_dict/final_dict/params_dict 지원.
         """
+        base = baseline or baseline_dict or {}
+        fin = final or final_dict or {}
+        prm = params or params_dict or {}
+
         self._benchmarks = {
-            "baseline": baseline_dict,
-            "final": final_dict,
-            "hyperparameters": params_dict,
+            "baseline": base,
+            "final": fin,
+            "hyperparameters": prm,
         }
 
     def save_run(self) -> Path:
         """
-        수집된 데이터 + 에러 로그 + Git Diff를 raw_telemetry.json에 저장.
+        수집된 데이터 + 누적 에러 로그 + Git Diff를 raw_telemetry.json에 저장.
 
         Returns:
             Path: 저장된 파일 경로.
         """
         _TELEMETRY_DIR.mkdir(exist_ok=True)
 
-        # last_error.json 로드 (없으면 빈 dict)
+        # 1. last_error.json 로드 (없으면 빈 dict)
         error_data: dict[str, Any] = {}
         if _ERROR_FILE.exists():
             try:
@@ -91,11 +100,23 @@ class DiffStackTracker:
             except json.JSONDecodeError:
                 pass
 
+        # 2. error_history.json 로드 (누적 에러 목록)
+        error_history: list[dict[str, Any]] = []
+        if _HISTORY_FILE.exists():
+            try:
+                loaded_hist = json.loads(_HISTORY_FILE.read_text(encoding="utf-8"))
+                if isinstance(loaded_hist, list):
+                    error_history = loaded_hist
+            except json.JSONDecodeError:
+                pass
+
         payload = {
             "saved_at": datetime.utcnow().isoformat(),
+            "overview": self._overview,
             "dataset": self._dataset,
             "benchmarks": self._benchmarks,
             "last_error": error_data,
+            "error_history": error_history,
             "git_diff": get_git_diff(),
         }
 
