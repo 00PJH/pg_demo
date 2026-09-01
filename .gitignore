@@ -1,19 +1,42 @@
 # 창업계획서 커밋 제외
 *.hwp
+*.hwpx
+*.pdf
 
 # AI 관련 파일 커밋 제외
 .agents/
+.claude/
+.codex/
 *.zip
 
 web_test/
 recommend_from_profile/
 
-.env
+# 사업기획/투자 관련 문서 (기술 데모와 무관, 비공개 유지)
+doc/
 
-*.md
+.env
 
 etc/
 
 # DiffStack Engine 런타임 데이터
 portfolio_demo/.telemetry/
-portfolio_demo/portfolio_output.html
+portfolio_demo/portfolio_output.html
+
+# ai_set_demo 생성 산출물 (재생성 가능)
+ai_set_demo/generated/
+
+# Python
+__pycache__/
+*.pyc
+
+# Node / Vite
+node_modules/
+dist/
+vite_debug.log
+
+# 학습 런타임 로그 (재생성 가능)
+results/
+
+# Windows 폴더 메타데이터
+desktop.ini
