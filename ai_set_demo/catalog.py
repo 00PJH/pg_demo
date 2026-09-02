@@ -29,7 +29,9 @@ _CATALOG: dict[str, ModelSpec] = {
         base_model="klue/bert-base",
         dataset_name="NSMC 2,000개 서브셋",
         min_vram_gb=4,
-        extra_requirements=[],  # torch/transformers/datasets는 base 이미지에 포함
+        # torch/transformers/datasets는 base 이미지에 포함.
+        # accelerate는 base에 없다 — transformers의 Trainer가 요구한다.
+        extra_requirements=["accelerate>=1.1.0"],
         hyperparameters={
             "learning_rate": 2e-5,
             "epochs": 2,

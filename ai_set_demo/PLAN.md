@@ -91,12 +91,18 @@ ai_set_demo/
 
 ## 7. 구현 순서
 
-1. `catalog.py` — ModelSpec dataclass + 2개 항목 하드코딩 (20분)
-2. `provisioner.py` — `torch.cuda.is_available()` + VRAM 체크 + 경고 문자열 (30분)
-3. `templates/*.tmpl` — `klue_bert_finetune`는 `train_real.py` 그대로 템플릿화, `mnist_cnn_lite`는 신규 작성이지만 텔레메트리 훅 호출부는 동일 패턴 복붙 (1시간)
-4. `generator.py` — 템플릿에 ModelSpec 값 채워 `generated/`에 저장 (30분)
-5. `setup_and_train.py` — 위 3개 연결 + subprocess 실행 + 로그 출력 (30분)
-6. 2개 모델 각각 로컬에서 1회씩 실행 검증 (이게 사실상 통합 테스트)
+1. ✅ `catalog.py` — ModelSpec dataclass + 2개 항목 하드코딩
+2. ✅ `provisioner.py` — 컨테이너 실행 + GPU 감지 + 준비 대기 + 경고 문자열
+3. ✅ `templates/*.tmpl` — `klue_bert_finetune`는 `train_real.py` 그대로 템플릿화, `mnist_cnn_lite`는 신규 작성이지만 텔레메트리 훅 호출부는 동일 패턴 복붙
+4. ✅ `generator.py` — 템플릿에 ModelSpec 값 채워 `generated/`에 저장 (stdlib `string.Template`)
+5. ✅ `setup_and_train.py` — 위 3개 연결 + `docker exec`으로 컨테이너 안에서 실행 + 로그 스트리밍
+6. ✅ 2개 모델 각각 로컬 1회 실행 검증 (통합 테스트) — `mnist-cnn-lite` acc 0.125→0.984, `klue-bert-finetune` f1 0.8587, 둘 다 GPU 사용
+
+**MVP 완료.** 실행: `python -m ai_set_demo.setup_and_train <model_id>` (`--list`로 목록).
+
+통합 테스트에서 잡은 것 (설계 문서에 없던 실제 문제 2개):
+- 베이스 이미지에 `accelerate` 누락 → transformers `Trainer`가 임포트 에러. `klue-bert-finetune`의 `extra_requirements`로 해결 (이미지 재빌드 불필요).
+- `docker run -d` 직후 바로 `docker exec`하면 entrypoint의 모델별 pip install이 끝나기 전에 학습이 시작되는 경쟁 상태 → entrypoint가 `/tmp/.plaiground_ready` 마커를 만들고 `ensure_ready()`가 그걸 기다리도록 수정.
 
 **총 예상: 3~4시간.** RunPod 연동, 웹 UI, 모델 카탈로그 확장은 이번 범위에 없음 — 필요해지면 그때 어댑터를 추가한다.
 

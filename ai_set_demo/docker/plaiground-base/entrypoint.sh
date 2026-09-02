@@ -19,4 +19,8 @@ if [[ -n "${MODEL_REQUIREMENTS_FILE:-}" ]]; then
   fi
 fi
 
+# 준비 완료 표시. provisioner의 ensure_ready()가 이 파일이 생길 때까지 기다린다 —
+# 없으면 모델별 pip install이 끝나기 전에 docker exec으로 학습이 시작된다.
+touch /tmp/.plaiground_ready
+
 exec code-server --bind-addr 0.0.0.0:8080 --auth none /workspace

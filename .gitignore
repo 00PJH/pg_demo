@@ -38,5 +38,11 @@ vite_debug.log
 # 학습 런타임 로그 (재생성 가능)
 results/
 
+# 학습 스크립트가 내려받는 데이터셋 (MNIST 등)
+data/
+
+# graphify 코드 그래프 산출물 (재생성 가능)
+graphify-out/
+
 # Windows 폴더 메타데이터
 desktop.ini

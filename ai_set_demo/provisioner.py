@@ -10,6 +10,7 @@ DECISION_ENV_PROVISIONING.md 최종 결정 반영: `plaiground-base` 컨테이�
 """
 
 import subprocess
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -17,6 +18,7 @@ from .catalog import ModelCatalog, ModelSpec
 
 _IMAGE = "plaiground-base:dev"
 _CONTAINER_NAME = "plaiground-workspace"
+_READY_MARKER = "/tmp/.plaiground_ready"  # entrypoint.sh가 모델별 설치를 끝낸 뒤 생성
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _GENERATED_DIR = Path(__file__).resolve().parent / "generated"
 _HOST_PORT = 8080
@@ -40,10 +42,24 @@ def _image_exists() -> bool:
     return _run(["docker", "image", "inspect", _IMAGE]).returncode == 0
 
 
+def _docker_running() -> bool:
+    return _run(["docker", "info"]).returncode == 0
+
+
 def _gpu_available() -> bool:
     # entrypoint.sh는 CMD 인자를 무시하고 항상 code-server를 실행하므로,
     # --entrypoint로 직접 덮어써야 컨테이너가 즉시 종료된다.
     return _run(["docker", "run", "--rm", "--gpus", "all", "--entrypoint", "true", _IMAGE]).returncode == 0
+
+
+def _wait_ready(container_id: str, timeout_s: int = 300) -> bool:
+    """entrypoint가 모델별 pip install을 끝내고 준비 마커를 만들 때까지 대기."""
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if _run(["docker", "exec", container_id, "test", "-f", _READY_MARKER]).returncode == 0:
+            return True
+        time.sleep(1)
+    return False
 
 
 def _write_requirements(spec: ModelSpec) -> str | None:
@@ -68,6 +84,10 @@ def ensure_ready(spec: ModelSpec, host_port: int = _HOST_PORT) -> EnvReport:
         EnvReport: GPU 가용 여부, 컨테이너 ID, 접속 URL, 경고 목록.
     """
     if not _image_exists():
+        # 데몬이 꺼져 있어도 image inspect는 실패한다 — 원인을 구분하지 않으면
+        # "이미지를 빌드하세요"라는 엉뚱한 안내가 나간다.
+        if not _docker_running():
+            raise RuntimeError("Docker 데몬에 연결할 수 없습니다. Docker Desktop을 먼저 실행하세요.")
         raise RuntimeError(
             f"'{_IMAGE}' 이미지가 없습니다. "
             f"ai_set_demo/docker/plaiground-base에서 'docker build -t {_IMAGE} .'를 먼저 실행하세요."
@@ -99,9 +119,17 @@ def ensure_ready(spec: ModelSpec, host_port: int = _HOST_PORT) -> EnvReport:
     if result.returncode != 0:
         raise RuntimeError(f"컨테이너 실행 실패: {result.stderr.strip()}")
 
+    container_id = result.stdout.strip()
+    if not _wait_ready(container_id):
+        # PLAN.md 섹션 8: 프로비저너는 크래시 대신 경고를 담은 EnvReport를 돌려준다.
+        warnings.append(
+            "컨테이너 준비 신호를 기다리다 시간이 초과됐습니다. "
+            "모델별 패키지 설치가 끝나지 않은 상태일 수 있습니다."
+        )
+
     return EnvReport(
         gpu_available=gpu_available,
-        container_id=result.stdout.strip(),
+        container_id=container_id,
         url=f"http://127.0.0.1:{host_port}",
         warnings=warnings,
     )
