@@ -22,12 +22,13 @@
     "shadows": [
       { "name": "glass-ambient", "value": "0 18px 40px rgba(0,0,0,0.45)", "purpose": "Only shadow on .glass-card; minimal lift off the black canvas." },
       { "name": "gold-glow", "value": "0 0 12px rgba(232,179,75,0.8)", "purpose": "Logo dot and completed progress-rail node. A light source, not a drop shadow." },
-      { "name": "cta-hover-glow", "value": "0 0 30px rgba(255,255,255,0.25)", "purpose": "Hero primary CTA hover only." }
+      { "name": "cta-hover-glow", "value": "0 0 30px rgba(232,179,75,0.35)", "purpose": "Hero gold primary CTA hover only." },
+      { "name": "ledger-glow", "value": "radial-gradient(ellipse at 65% 45%, rgba(232,179,75,0.22), rgba(91,120,255,0.08) 45%, transparent 70%) + blur(30px)", "purpose": "Light source behind the hero terminal/ledger stack. Hero only." }
     ],
     "motion": [
       { "name": "ease-rise", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "The single easing. Entrance rise, 0.9s, staggered 0/0.15s/0.3s." },
-      { "name": "breathe", "value": "7s ease-in-out infinite (scale 1.015, brightness 1.12)", "purpose": "Orb only." },
-      { "name": "drift", "value": "9s ease-in-out infinite (translateY -10px)", "purpose": "Floating hero stat cards, phase-offset via animation-delay." },
+      { "name": "drift", "value": "9s ease-in-out infinite (translateY -10px)", "purpose": "Hero Verified Ledger card (sm+) only." },
+      { "name": "pulse", "value": "Tailwind animate-pulse", "purpose": "Gold live dot on the hero [LEDGER] log line." },
       { "name": "gauge", "value": "transition-all 700ms", "purpose": "Progress/gauge fills; all other state changes use default transition-colors." }
     ],
     "breakpoints": [
@@ -57,7 +58,7 @@
       "name": "Gold Button",
       "kind": "button",
       "refersTo": "button-gold",
-      "description": "Reserved for the B2B highlight card CTA; the scarcity of colored buttons is the hierarchy.",
+      "description": "The LANDING's primary CTA (hero and header Start Workspace) and the B2B highlight card CTA. The console's primary stays ink (The Two Stages Rule).",
       "html": "<button class=\"ds-btn-gold\">Faculty LMS 살펴보기</button>",
       "css": ".ds-btn-gold { background: var(--color-gold, #e8b34b); color: var(--color-void, #050505); border: none; border-radius: 9999px; padding: 12px 24px; font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: filter 0.15s; } .ds-btn-gold:hover { filter: brightness(1.1); } .ds-btn-gold:focus-visible { outline: 2px solid rgba(232,179,75,0.75); outline-offset: 2px; }"
     },
@@ -101,34 +102,37 @@
   ],
   "narrative": {
     "northStar": "The Liquid Ledger",
-    "overview": "순수 블랙(#050505) 캔버스 위에 단 하나의 발광체 — 유리질 골드/블루 액체금속 오브 — 로 시선을 모으는 세계. 카테고리 기본형(slate 대시보드 그리드 + 이모지 카드)을 거부하고, 어둠·유리·금속 세 가지 재질만으로 \"학습 과정 자체가 증명이 된다\"는 제품 명제를 시각화한다. 랜딩의 오브가 약속이라면, 콘솔의 pit 바닥 로그 콘솔은 그 약속의 실행이다. 밀도는 낮고 여백은 크다. 헤드라인은 영문 대형 그로테스크, 본문은 한글, 원시 출력(로그·해시·코드)은 모노스페이스 — 세 목소리가 섞이지 않는다.",
+    "overview": "순수 블랙(#050505) 캔버스 위에서 제품 메커니즘 자체를 극화하는 세계. 카테고리 기본형(slate 대시보드 그리드 + 이모지 카드)을 거부하고, 어둠·유리·금속 세 가지 재질만으로 \"학습 과정 자체가 증명이 된다\"는 명제를 시각화한다. 히어로는 그 명제를 문자 그대로 보여준다: 모눈종이(gridfield) 배경 위에서 학습 세션 터미널이 에러를 가로채고, diff로 고치고, SHA-256 원장으로 서명하는 순간 — 그 위에 골드 광원(ledger-glow)이 얹힌다. 랜딩의 터미널이 약속이라면, 콘솔의 pit 바닥 로그 콘솔은 그 약속의 실행이다. 밀도는 낮고 여백은 크다. 헤드라인은 영문 대형 그로테스크, 본문은 한글, 원시 출력(로그·해시·코드)은 모노스페이스 — 세 목소리가 섞이지 않는다.",
     "keyCharacteristics": [
-      "#050505 블랙 캔버스 + 미세 별빛 노이즈(히어로 한정)",
+      "#050505 블랙 캔버스 + 타원 마스크된 1px 모눈 그리드(gridfield, 히어로 한정) + 골드/코발트 광원(ledger-glow)",
       "backdrop-blur 글래스 카드와 pill 실루엣(내비·CTA·배지 전부 rounded-full)",
       "골드=증명/브랜드, 코발트=진행/텔레메트리, 민트=성공, 엠버=에러의 4역 시그널 팔레트",
       "영문 헤드라인 + 한글 본문 + JetBrains Mono 원시 출력의 3성부 타이포그래피",
-      "진입 모션은 rise 스태거 하나, 상시 모션은 오브의 breathe/drift 둘뿐"
+      "진입 모션은 rise 스태거 하나, 상시 모션은 서명 카드의 drift와 라이브 도트의 pulse뿐"
     ],
     "rules": [
       { "name": "The One Ember Rule", "body": "채도 색은 상태를 말할 때만 등장한다. 장식 목적의 컬러 블록·컬러 배경 섹션은 없다 — 넓은 면은 언제나 void/pit/glass다.", "section": "colors" },
-      { "name": "The Ink CTA Rule", "body": "주 행동은 항상 뼈백색(ink) 배경 pill이고 hover에 순백으로 밝아진다. 골드 배경 버튼은 B2B 하이라이트 카드 한 곳, 민트 배경 버튼은 세팅 완료 배너 한 곳뿐 — 색 버튼의 희소성이 위계다.", "section": "colors" },
+      { "name": "The Two Stages Rule", "body": "CTA 색은 무대가 정한다: 랜딩(약속의 무대)의 주 행동은 골드 pill, 콘솔(실행의 무대)의 주 행동은 뼈백색 ink pill. 두 무대를 섞지 않는다. 민트 배경 버튼은 세팅 완료 배너 한 곳뿐.", "section": "colors" },
+      { "name": "The Two Navigations Rule", "body": "랜딩(마케팅)과 콘솔(운영)의 내비 문법은 의도적으로 다르다: 랜딩 = 전폭 헤어라인 블러 바(중앙 링크는 콘솔 뷰 — Start AI/Web IDE/View AI/Portfolio/커뮤니티), 콘솔 = 플로팅 글래스 pill + 뷰 탭. 목적지는 같아도 바-대-pill 문법은 통일하지 않는다.", "section": "layout" },
+      { "name": "The Borrowed Tint Rule", "body": "커뮤니티 한정으로 시그널 팔레트가 카테고리 틴트로 재사용된다: 오류해결=ember, 학습 결과=mint, Q&A=cobalt, 데이터 정보=gold — 커뮤니티의 커버와 카테고리 칩에만 적용되며, 그 밖의 화면에서 시그널색의 의미는 그대로다.", "section": "colors" },
       { "name": "The Three Voices Rule", "body": "역할이 글꼴을 정한다: 헤드라인/값 = Schibsted Grotesk bold, 한글 산문 = Noto Sans KR, 기계가 낸 문자열(로그·해시·ID·명령·상태 코드) = JetBrains Mono.", "section": "typography" },
-      { "name": "The Keep-All Rule", "body": "h1, h2, h3, p { word-break: keep-all; } — 한글 제목·문단은 음절 단위로 꺾지 않는다.", "section": "typography" },
+      { "name": "The Keep-All Rule", "body": "h1, h2, h3, p { word-break: keep-all; } — 한글 제목·문단은 음절 단위로 꺾지 않는다. 반드시 @layer base 안에 둔다 — 그래야 break-all 같은 유틸리티가 이길 수 있다.", "section": "typography" },
       { "name": "The Glow-Not-Shadow Rule", "body": "오프셋 그림자로 띄우지 않는다. 강조가 필요하면 발광(glow)·테두리 밝기·배경 투명도를 올린다.", "section": "elevation" },
-      { "name": "The Calm Console Rule", "body": "상시 모션(무한 루프)은 랜딩 히어로의 breathe/drift와 로딩 스피너, 라이브 커서 점멸뿐이다. 콘솔 화면은 데이터가 움직일 때만 움직인다.", "section": "elevation" }
+      { "name": "The Calm Console Rule", "body": "상시 모션(무한 루프)은 랜딩 히어로의 drift/pulse와 로딩 스피너, 라이브 커서 점멸뿐이다. 콘솔 화면은 데이터가 움직일 때만 움직인다.", "section": "elevation" }
     ],
     "dos": [
       "Do 인터랙티브 요소는 pill(9999px), 컨테이너는 16px/24px 두 단만 쓴다.",
       "Do 기계의 출력(로그·해시·명령·상태 코드·ID)은 항상 JetBrains Mono + pit 바닥 + line 테두리에 담는다.",
       "Do 시그널색은 의미 고정으로 쓴다: gold=증명/브랜드, cobalt=진행 중, mint=성공, ember=에러, amber=경고.",
-      "Do 목업/샘플 화면에는 mono 대문자 배지(SIMULATION, SAMPLE DATA)를 제목 옆에 단다 — 정직성이 시각 규칙이다.",
+      "Do 목업/샘플 화면에는 mono 대문자 배지를 h1 옆에 단다 — 정직성이 시각 규칙이다. 현재 인스턴스: View AI=SIMULATION, Faculty LMS=SAMPLE DATA, 커뮤니티=SAMPLE DATA(글·수치는 데모 시드, 인용된 데이터셋·출처·코드는 실재).",
       "Do 진입은 rise 3단 스태거, 상태 강조는 시그널색 /15 배경 + /30~40 테두리 조합으로.",
       "Do 숫자 값에는 tabular-nums, 아이콘은 Lucide 스트로크 12–16px."
     ],
     "donts": [
-      "Don't 커스텀(unlayered) CSS 컴포넌트 클래스 안에 position 등 유틸리티 소유 속성을 넣지 않는다 — Tailwind v4에서 unlayered 규칙은 @layer utilities를 이긴다. 레이아웃은 마크업 유틸리티, 재질만 컴포넌트 클래스.",
+      "Don't 커스텀(unlayered) CSS 규칙으로 유틸리티 소유 속성을 덮지 않는다 — Tailwind v4에서 unlayered 규칙은 @layer utilities를 이긴다. 엘리먼트 셀렉터 규칙(h1,h2,h3,p 등)도 @layer base에 넣는다. 레이아웃은 마크업 유틸리티, 재질만 컴포넌트 클래스.",
       "Don't slate 팔레트·각진 모서리·이모지 아이콘 카드를 들여오지 않는다 — 그것은 옆 세계(web_demo)의 문법이다.",
-      "Don't 오브·별빛을 히어로 밖에서 재사용하지 않는다. 오브는 단 한 점이라서 성립한다.",
+      "Don't gridfield·ledger-glow·터미널 원장 스택을 히어로 밖에서 재사용하지 않는다. 극화는 한 번이라서 성립한다.",
+      "Don't 랜딩 바와 콘솔 pill 내비를 하나로 통일하지 않는다 (The Two Navigations Rule).",
       "Don't 오프셋 박스 섀도로 요소를 띄우지 않는다 — 발광·테두리·투명도가 이 세계의 강조 수단이다.",
       "Don't 콘솔 화면에 무한 루프 장식 모션을 추가하지 않는다 (The Calm Console Rule).",
       "Don't 증명 불가능한 수치를 UI에 박지 않는다 — 값은 백엔드 응답 또는 venture.md 출처만, 예시 해시에는 \"(예시)\"를 명기한다."

@@ -27,6 +27,7 @@ if str(_REPO_ROOT) not in sys.path:  # `python web_combine_demo/api_server.py` �
     sys.path.insert(0, str(_REPO_ROOT))
 
 from ai_set_demo.api_server import _Handler as _BaseHandler  # noqa: E402
+from community_demo import service as community  # noqa: E402
 
 _STATIC_DIR = Path(__file__).resolve().parent / "app" / "dist"
 _PORTFOLIO_DIR = _REPO_ROOT / "portfolio_demo"
@@ -48,14 +49,19 @@ def _telemetry_summary() -> dict:
         "error_count": len(data.get("error_history", [])),
         "last_error_type": (data.get("last_error") or {}).get("error_type", ""),
         "output_exists": (_PORTFOLIO_DIR / "portfolio_output.html").exists(),
+        "data_exists": (_PORTFOLIO_DIR / "portfolio_output.json").exists(),
     }
 
 
 class _Handler(_BaseHandler):
     def do_GET(self) -> None:  # noqa: N802 (stdlib 규약)
         route = urlparse(self.path)
-        if route.path == "/api/portfolio/run":
+        if route.path == "/api/community/posts":
+            self._send_json(community.list_posts())
+        elif route.path == "/api/portfolio/run":
             self._stream_portfolio_run()
+        elif route.path == "/api/portfolio/data":
+            self._send_portfolio_data()
         elif route.path == "/api/portfolio/output":
             self._send_portfolio_html()
         elif route.path == "/api/portfolio/telemetry":
@@ -69,6 +75,31 @@ class _Handler(_BaseHandler):
             )
         else:
             super().do_GET()
+
+    def do_POST(self) -> None:  # noqa: N802 (stdlib 규약)
+        route = urlparse(self.path)
+        try:
+            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0)) or 0) or b"{}")
+        except json.JSONDecodeError:
+            self._send_json({"error": "잘못된 JSON 본문입니다."}, status=400)
+            return
+        try:
+            if route.path == "/api/community/interact":
+                self._send_json(community.interact(body.get("post_id", ""), body.get("action", "")))
+            elif route.path == "/api/community/practice":
+                self._send_json(community.stage_practice(body.get("post_id", "")))
+            else:
+                self._send_json({"error": "알 수 없는 엔드포인트입니다."}, status=404)
+        except (KeyError, ValueError) as exc:
+            self._send_json({"error": str(exc)}, status=400)
+
+    def _send_portfolio_data(self) -> None:
+        """렌더러가 저장한 포트폴리오 스키마 JSON — 프론트엔드 네이티브 렌더링용."""
+        path = _PORTFOLIO_DIR / "portfolio_output.json"
+        if not path.exists():
+            self._send_json({"error": "포트폴리오가 아직 생성되지 않았습니다. 먼저 파이프라인을 실행하세요."}, status=404)
+            return
+        self._send_json(json.loads(path.read_text(encoding="utf-8")))
 
     def _send_portfolio_html(self) -> None:
         path = _PORTFOLIO_DIR / "portfolio_output.html"

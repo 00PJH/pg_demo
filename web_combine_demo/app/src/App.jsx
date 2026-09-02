@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
-import { ArrowUpRight, Check, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowUpRight, Check, ChevronDown, GraduationCap, LogOut, ShieldCheck, X } from 'lucide-react';
 import StartAI from './StartAI.jsx';
 import IdeView from './IdeView.jsx';
 import ViewAI from './ViewAI.jsx';
 import PortfolioView from './PortfolioView.jsx';
 import Lms from './Lms.jsx';
+import Community from './Community.jsx';
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function Toasts({ toasts, remove }) {
@@ -23,8 +24,80 @@ function Toasts({ toasts, remove }) {
   );
 }
 
-// ─── 랜딩 페이지 (Liquid Brokers 그래머) ──────────────────────────────────────
-function Landing({ go }) {
+// ─── 로그인 메뉴 (학생/관리자 선택) ───────────────────────────────────────────
+function LoginMenu({ role, onLogin, onLogout }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  // 열린 메뉴는 Escape·바깥 클릭으로 닫힌다
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    const onClick = (e) => { if (!rootRef.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onClick);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onClick);
+    };
+  }, [open]);
+
+  if (role) {
+    const isAdmin = role === 'admin';
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium ${
+          isAdmin ? 'bg-gold/15 text-gold' : 'bg-cobalt/15 text-cobalt'
+        }`}>
+          {isAdmin ? <ShieldCheck className="w-3.5 h-3.5" /> : <GraduationCap className="w-3.5 h-3.5" />}
+          {isAdmin ? '관리자' : '학생'}
+        </span>
+        <button
+          onClick={onLogout}
+          aria-label="로그아웃"
+          className="p-2 rounded-full text-mist hover:text-ink hover:bg-white/5 transition-colors"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative" ref={rootRef}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] text-mist hover:text-ink transition-colors"
+      >
+        Login
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        // 단순 버튼 목록 — menu role은 화살표 키 포커스 관리까지 약속하므로 쓰지 않는다
+        <div className="absolute right-0 top-full mt-2 w-48 glass-card rounded-2xl p-1.5 z-50">
+          <button
+            onClick={() => { setOpen(false); onLogin('student'); }}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] text-ink hover:bg-white/8 transition-colors text-left"
+          >
+            <GraduationCap className="w-4 h-4 text-cobalt shrink-0" />
+            학생으로 로그인
+          </button>
+          <button
+            onClick={() => { setOpen(false); onLogin('admin'); }}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] text-ink hover:bg-white/8 transition-colors text-left"
+          >
+            <ShieldCheck className="w-4 h-4 text-gold shrink-0" />
+            관리자로 로그인
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── 랜딩 페이지 ──────────────────────────────────────────────────────────────
+function Landing({ go, role, onLogin, onLogout }) {
   const [openFaq, setOpenFaq] = useState(0);
 
   const faqs = [
@@ -45,100 +118,104 @@ function Landing({ go }) {
   return (
     <div className="min-h-screen bg-void text-ink overflow-x-clip">
       {/* ── 내비게이션 ── */}
-      <header className="fixed top-0 inset-x-0 z-40">
-        <div className="max-w-6xl mx-auto px-6 pt-5">
-          <div className="glass-card rounded-full h-14 px-6 flex items-center justify-between">
-            <a href="#top" className="flex items-center gap-2.5 shrink-0">
-              <span className="w-2.5 h-2.5 rounded-full bg-gold shadow-[0_0_12px_rgba(232,179,75,0.8)]" />
-              <span className="font-display font-bold tracking-tight text-[15px]">plAI-ground</span>
-            </a>
-            <nav className="hidden md:flex items-center gap-7 text-[13px] text-mist">
-              <a href="#platform" className="hover:text-ink transition-colors">Platform</a>
-              <a href="#pipeline" className="hover:text-ink transition-colors">Pipeline</a>
-              <a href="#pricing" className="hover:text-ink transition-colors">Pricing</a>
-              <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
-            </nav>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => go('lms')}
-                className="hidden sm:block px-4 py-2 rounded-full text-[13px] text-mist hover:text-ink transition-colors"
-              >
-                Faculty LMS
-              </button>
-              <button
-                onClick={() => go('start')}
-                className="px-5 py-2 rounded-full bg-ink text-void text-[13px] font-semibold hover:bg-white transition-colors"
-              >
-                Start Workspace
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* ── 히어로 ── */}
-      <section id="top" className="relative min-h-screen flex flex-col items-center starfield overflow-hidden">
-        <div className="relative z-10 flex flex-col items-center text-center px-6 pt-44 pb-8">
-          <h1 className="font-display font-bold tracking-[-0.03em] leading-[1.04] text-[2.6rem] sm:text-6xl md:text-7xl animate-rise">
-            Train the Model.
-            <br />
-            Prove the Journey.
-          </h1>
-          <p className="mt-7 max-w-xl text-[15px] leading-relaxed text-mist animate-rise-late">
-            5분 원클릭 GPU 실습 환경 구축부터, 디버깅 과정이 그대로
-            <br className="hidden sm:block" />
-            검증형 포트폴리오가 되는 통합 AI 실습 플랫폼.
-          </p>
-          <div className="mt-9 flex items-center gap-3 animate-rise-later">
+      <header className="fixed top-0 inset-x-0 z-40 bg-void/85 backdrop-blur-md border-b border-line">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <a href="#top" className="flex items-center gap-2.5 shrink-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-gold shadow-[0_0_12px_rgba(232,179,75,0.8)]" />
+            <span className="font-display font-bold tracking-tight text-[15px]">plAI-ground</span>
+          </a>
+          <nav className="hidden md:flex items-center gap-6 text-[13px] text-mist">
+            <button onClick={() => go('start')} className="hover:text-ink transition-colors">Start AI</button>
+            <button onClick={() => go('ide')} className="hover:text-ink transition-colors">Web IDE</button>
+            <button onClick={() => go('view')} className="hover:text-ink transition-colors">View AI</button>
+            <button onClick={() => go('portfolio')} className="hover:text-ink transition-colors">Portfolio</button>
+            <button onClick={() => go('community')} className="hover:text-ink transition-colors">커뮤니티</button>
+          </nav>
+          <div className="flex items-center gap-2">
+            <LoginMenu role={role} onLogin={onLogin} onLogout={onLogout} />
             <button
               onClick={() => go('start')}
-              className="px-7 py-3 rounded-full bg-ink text-void text-sm font-semibold hover:bg-white hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transition-all"
+              className="px-5 py-2 rounded-full bg-gold text-void text-[13px] font-semibold hover:brightness-110 transition-all whitespace-nowrap"
             >
               Start Workspace
             </button>
-            <button
-              onClick={() => go('portfolio')}
-              className="px-7 py-3 rounded-full border border-line text-sm text-mist hover:text-ink hover:border-white/25 transition-colors"
-            >
-              포트폴리오 데모
-            </button>
           </div>
         </div>
+        {/* 모바일 전용 메뉴 행 */}
+        <nav className="md:hidden flex items-center gap-5 overflow-x-auto px-6 pb-3 text-[13px] text-mist">
+          <button onClick={() => go('start')} className="hover:text-ink transition-colors whitespace-nowrap">Start AI</button>
+          <button onClick={() => go('ide')} className="hover:text-ink transition-colors whitespace-nowrap">Web IDE</button>
+          <button onClick={() => go('view')} className="hover:text-ink transition-colors whitespace-nowrap">View AI</button>
+          <button onClick={() => go('portfolio')} className="hover:text-ink transition-colors whitespace-nowrap">Portfolio</button>
+          <button onClick={() => go('community')} className="hover:text-ink transition-colors whitespace-nowrap">커뮤니티</button>
+        </nav>
+      </header>
 
-        {/* 오브 + 플로팅 카드 */}
-        <div className="relative w-full flex-1 min-h-[260px] sm:min-h-[380px]" aria-hidden="true">
-          <div className="absolute left-1/2 -translate-x-1/2 top-6 w-[min(760px,92vw)] aspect-square">
-            <div className="orb-rim absolute inset-x-[8%] bottom-[38%] h-[26%]" />
-            <div className="orb-body absolute inset-0 animate-breathe" />
-          </div>
-          {/* 좌측 카드 — 실측 셋업 시간 */}
-          <div className="hidden sm:block absolute left-[6%] lg:left-[14%] top-16 animate-drift">
-            <div className="glass-card rounded-2xl p-4 w-52">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] text-mist">Setup Time</span>
-                <span className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
-                  <ArrowUpRight className="w-3 h-3 text-ink" />
-                </span>
-              </div>
-              <p className="font-display font-bold text-2xl tabular">5:00</p>
-              <p className="text-[11px] text-dim mt-1">모델 선택부터 Web IDE까지</p>
-              <div className="mt-3 h-1 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full w-4/5 rounded-full bg-gold" />
-              </div>
+      {/* ── 히어로 — 학습 여정이 원장이 되는 순간을 그대로 보여준다 ── */}
+      <section id="top" className="relative overflow-hidden">
+        <div className="absolute inset-0 gridfield" aria-hidden="true" />
+        <div className="relative max-w-6xl mx-auto px-6 pt-36 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
+          {/* 좌측 — 메시지 */}
+          <div className="lg:col-span-6">
+            <h1 className="font-display font-bold tracking-[-0.03em] leading-[1.06] text-[2.6rem] sm:text-6xl animate-rise">
+              Train the Model.
+              <br />
+              Prove the Journey.
+            </h1>
+            <p className="mt-7 max-w-lg text-[15px] leading-relaxed text-mist animate-rise-late">
+              5분 원클릭 GPU 실습 환경 구축부터, 디버깅 과정이 그대로
+              검증형 포트폴리오가 되는 통합 AI 실습 플랫폼.
+            </p>
+            <div className="mt-9 flex items-center gap-3 animate-rise-later">
+              <button
+                onClick={() => go('start')}
+                className="px-7 py-3 rounded-full bg-gold text-void text-sm font-semibold hover:brightness-110 hover:shadow-[0_0_30px_rgba(232,179,75,0.35)] transition-all"
+              >
+                Start Workspace
+              </button>
+              <button
+                onClick={() => go('portfolio')}
+                className="px-7 py-3 rounded-full border border-line text-sm text-mist hover:text-ink hover:border-white/25 transition-colors"
+              >
+                포트폴리오 데모
+              </button>
             </div>
           </div>
-          {/* 우측 카드 — 원장 무결성 */}
-          <div className="hidden sm:block absolute right-[6%] lg:right-[14%] top-40 animate-drift" style={{ animationDelay: '1.6s' }}>
-            <div className="glass-card rounded-2xl p-4 w-56">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] text-mist">Verified Ledger</span>
-                <span className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
-                  <ArrowUpRight className="w-3 h-3 text-ink" />
-                </span>
+
+          {/* 우측 — 라이브 원장 스택 (제품 메커니즘의 극화) */}
+          <div className="lg:col-span-6 relative animate-rise-late" aria-hidden="true">
+            <div className="ledger-glow absolute -inset-10" />
+            <div className="relative glass-card rounded-2xl overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 border-b border-line">
+                <span className="w-2.5 h-2.5 rounded-full bg-ember/70" />
+                <span className="w-2.5 h-2.5 rounded-full bg-gold/70" />
+                <span className="w-2.5 h-2.5 rounded-full bg-mint/70" />
+                <span className="ml-2 font-mono text-[11px] text-dim">plaiground · training session</span>
               </div>
-              <p className="font-display font-bold text-2xl">SHA-256</p>
-              <p className="font-mono text-[10px] text-gold mt-1 truncate">8a07f3c1d2e9b4a0f6c8… <span className="text-dim">(예시)</span></p>
-              <p className="text-[11px] text-dim mt-2">실제 해시는 포트폴리오에서 발급</p>
+              <div className="px-5 pt-4 pb-9 font-mono text-[12px] leading-7">
+                <p className="text-mist"><span className="text-dim">[EPOCH 02/03]</span> loss 1.284 · f1 0.412</p>
+                <p className="text-ember">[INTERCEPT] RuntimeError: CUDA out of memory (batch_size=64)</p>
+                <p className="text-ember/90 pl-4">- batch_size = 64</p>
+                <p className="text-mint pl-4">+ batch_size = 16, grad_accum = 4</p>
+                <p className="text-cobalt"><span className="text-dim">[RESUME]</span> loss 1.12 · f1 0.783 (+37.1%p)</p>
+                <p className="text-gold flex items-center gap-2">
+                  [LEDGER] SHA-256 서명 완료 — 이력은 이제 증명입니다
+                  <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
+                </p>
+              </div>
+            </div>
+            {/* 겹쳐진 서명 카드 — 데스크톱은 하단 모서리만 겹치고, 모바일은 아래로 흐른다 */}
+            <div className="mt-4 flex justify-end sm:block sm:mt-0 sm:absolute sm:-bottom-16 sm:right-6 sm:animate-drift">
+              <div className="glass-card rounded-2xl p-4 w-60 border-gold/25">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] text-mist">Verified Ledger</span>
+                  <span className="w-6 h-6 rounded-full bg-gold/15 flex items-center justify-center">
+                    <ArrowUpRight className="w-3 h-3 text-gold" />
+                  </span>
+                </div>
+                <p className="font-mono text-[11px] text-gold truncate">sha256: 8a07f3c1d2e9b4… <span className="text-dim">(예시)</span></p>
+                <p className="text-[11px] text-dim mt-1.5">실제 해시는 포트폴리오에서 발급</p>
+              </div>
             </div>
           </div>
         </div>
@@ -292,10 +369,10 @@ function Landing({ go }) {
                 ))}
               </ul>
               <button
-                onClick={() => go('lms')}
+                onClick={() => { onLogin('admin'); go('lms'); }}
                 className="mt-7 w-full py-3 rounded-full bg-gold text-void text-sm font-semibold hover:brightness-110 transition-all"
               >
-                Faculty LMS 살펴보기
+                관리자 데모로 LMS 살펴보기
               </button>
             </div>
           </div>
@@ -371,7 +448,6 @@ function Landing({ go }) {
             <button onClick={() => go('start')} className="hover:text-mist transition-colors">Start AI</button>
             <button onClick={() => go('view')} className="hover:text-mist transition-colors">View AI</button>
             <button onClick={() => go('portfolio')} className="hover:text-mist transition-colors">Portfolio</button>
-            <button onClick={() => go('lms')} className="hover:text-mist transition-colors">Faculty LMS</button>
           </nav>
           <p className="text-[12px] text-dim">© 2026 plAI-ground. All rights reserved.</p>
         </div>
@@ -381,15 +457,17 @@ function Landing({ go }) {
 }
 
 // ─── 콘솔 셸 (Operate 표면) ───────────────────────────────────────────────────
-const TABS = [
+const BASE_TABS = [
   { id: 'start', label: 'Start AI' },
   { id: 'ide', label: 'Web IDE' },
   { id: 'view', label: 'View AI' },
   { id: 'portfolio', label: 'Portfolio' },
-  { id: 'lms', label: 'Faculty LMS' },
+  { id: 'community', label: '커뮤니티' },
 ];
+const ADMIN_TAB = { id: 'lms', label: 'Faculty LMS' };
 
-function ConsoleShell({ view, go, children }) {
+function ConsoleShell({ view, go, role, onLogin, onLogout, children }) {
+  const tabs = role === 'admin' ? [...BASE_TABS, ADMIN_TAB] : BASE_TABS;
   return (
     <div className="min-h-screen bg-void text-ink">
       <header className="fixed top-0 inset-x-0 z-40">
@@ -400,7 +478,7 @@ function ConsoleShell({ view, go, children }) {
               <span className="font-display font-bold tracking-tight text-sm hidden sm:inline">plAI-ground</span>
             </button>
             <nav className="flex items-center gap-1 overflow-x-auto" aria-label="콘솔 메뉴">
-              {TABS.map((t) => (
+              {tabs.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => go(t.id)}
@@ -413,10 +491,7 @@ function ConsoleShell({ view, go, children }) {
                 </button>
               ))}
             </nav>
-            <div className="hidden md:flex items-center gap-2 text-[11px] text-mist shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-mint" />
-              LOCAL
-            </div>
+            <LoginMenu role={role} onLogin={onLogin} onLogout={onLogout} />
           </div>
         </div>
       </header>
@@ -428,7 +503,9 @@ function ConsoleShell({ view, go, children }) {
 // ─── 루트 ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [view, setView] = useState('landing');
+  const [role, setRole] = useState(null); // null | 'student' | 'admin'
   const [session, setSession] = useState(null); // /api/setup ready 페이로드 (IDE 접속 정보)
+  const [staged, setStaged] = useState(null); // 커뮤니티 '실습해보기'로 준비된 코드 정보
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message) => {
@@ -443,17 +520,32 @@ export default function App() {
     window.scrollTo(0, 0);
   }, []);
 
+  const login = useCallback((r) => {
+    setRole(r);
+    addToast(r === 'admin' ? '관리자로 로그인했습니다 — Faculty LMS가 열렸습니다.' : '학생으로 로그인했습니다.');
+  }, [addToast]);
+
+  const logout = useCallback(() => {
+    setRole(null);
+    setView((v) => (v === 'lms' ? 'start' : v));
+    addToast('로그아웃했습니다.');
+  }, [addToast]);
+
+  // LMS는 관리자 전용 — 다른 역할로 접근하면 Start AI로 대체
+  const effectiveView = view === 'lms' && role !== 'admin' ? 'start' : view;
+
   return (
     <>
-      {view === 'landing' ? (
-        <Landing go={go} />
+      {effectiveView === 'landing' ? (
+        <Landing go={go} role={role} onLogin={login} onLogout={logout} />
       ) : (
-        <ConsoleShell view={view} go={go}>
-          {view === 'start' && <StartAI go={go} onSession={setSession} addToast={addToast} />}
-          {view === 'ide' && <IdeView session={session} go={go} addToast={addToast} />}
-          {view === 'view' && <ViewAI addToast={addToast} />}
-          {view === 'portfolio' && <PortfolioView addToast={addToast} />}
-          {view === 'lms' && <Lms go={go} addToast={addToast} />}
+        <ConsoleShell view={effectiveView} go={go} role={role} onLogin={login} onLogout={logout}>
+          {effectiveView === 'start' && <StartAI go={go} onSession={setSession} addToast={addToast} />}
+          {effectiveView === 'ide' && <IdeView session={session} staged={staged} go={go} addToast={addToast} />}
+          {effectiveView === 'community' && <Community go={go} onStaged={setStaged} addToast={addToast} />}
+          {effectiveView === 'view' && <ViewAI addToast={addToast} />}
+          {effectiveView === 'portfolio' && <PortfolioView addToast={addToast} />}
+          {effectiveView === 'lms' && <Lms go={go} addToast={addToast} />}
         </ConsoleShell>
       )}
       <Toasts toasts={toasts} remove={removeToast} />

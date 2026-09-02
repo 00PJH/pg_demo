@@ -16,6 +16,7 @@ from ..core.schema import PortfolioSchema
 
 _TEMPLATE_DIR = Path(__file__).parent.parent / "templates"
 _OUTPUT_FILE = Path(__file__).parent.parent / "portfolio_output.html"
+_OUTPUT_JSON = Path(__file__).parent.parent / "portfolio_output.json"
 
 
 def _compute_hash(timestamp: str, telemetry: dict) -> str:
@@ -58,6 +59,8 @@ def render_portfolio(schema: PortfolioSchema, telemetry: dict) -> Path:
     html = template.render(portfolio=data)
 
     _OUTPUT_FILE.write_text(html, encoding="utf-8")
+    # 웹 프론트엔드가 네이티브로 렌더링할 수 있게 스키마 JSON도 함께 저장
+    _OUTPUT_JSON.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     return _OUTPUT_FILE
 
 

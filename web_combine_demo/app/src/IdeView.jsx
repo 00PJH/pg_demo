@@ -5,18 +5,28 @@ import { AlertTriangle, Check, Copy, Cpu, ExternalLink, Eye, Play, Terminal } fr
 // 세팅이 끝나면 생성된 학습 스크립트가 열린 채로 시작한다.
 // 학습은 사용자가 IDE 터미널(Ctrl+`)에서 직접 실행한다.
 
-export default function IdeView({ session, go, addToast }) {
+export default function IdeView({ session, staged, go, addToast }) {
   const [copied, setCopied] = useState(false);
 
   if (!session) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center px-6">
-        <div className="max-w-sm text-center space-y-4">
+        <div className="max-w-md text-center space-y-4">
           <Cpu className="w-10 h-10 text-dim mx-auto" />
           <p className="font-display font-bold text-lg">활성 워크스페이스가 없습니다</p>
+          {staged && (
+            <div className="rounded-2xl border border-gold/30 bg-gold/5 p-4 text-left">
+              <p className="text-[12px] font-medium text-gold">커뮤니티 실습 코드가 준비되었습니다</p>
+              <p className="mt-1.5 text-[13px] text-mist leading-relaxed">{staged.title}</p>
+              <p className="mt-1.5 font-mono text-[11px] text-ink break-all">{staged.script_path}</p>
+              <p className="mt-2 text-[12px] text-mist">
+                환경 세팅 후 IDE 터미널에서 <code className="font-mono text-cobalt">{staged.run_command}</code> 로 실행됩니다.
+              </p>
+            </div>
+          )}
           <p className="text-[13px] text-mist leading-relaxed">
             Start AI에서 모델을 선택해 환경을 먼저 세팅하세요. 세팅이 끝나면 생성된
-            학습 코드가 이 자리에 열립니다.
+            {staged ? ' 학습 코드와 위 실습 코드가 워크스페이스에 열립니다.' : ' 학습 코드가 이 자리에 열립니다.'}
           </p>
           <button
             onClick={() => go('start')}
@@ -83,6 +93,13 @@ export default function IdeView({ session, go, addToast }) {
         <AlertTriangle className="w-3.5 h-3.5 text-amber-300 shrink-0" />
         학습을 시작하려면 IDE에서 터미널을 열고(Ctrl+`) 위 명령을 실행하세요. 학습 중 발생한 에러는 자동으로 수집됩니다.
       </p>
+
+      {staged && (
+        <div className="mb-3 rounded-2xl border border-gold/30 bg-gold/5 px-4 py-2.5 flex items-center justify-between gap-3 flex-wrap text-[12px]">
+          <span className="text-gold font-medium">커뮤니티 실습 코드 준비됨</span>
+          <code className="font-mono text-[11px] text-ink">{staged.run_command}</code>
+        </div>
+      )}
 
       <iframe
         src={session.ide_url}
