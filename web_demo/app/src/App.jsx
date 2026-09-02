@@ -6,8 +6,10 @@ import {
   LogIn, Play, Server, ShieldCheck, Terminal, Users,
   BookOpen, Eye, X, Pause,
   LineChart, Folder,
-  Sparkles, CheckSquare
+  CheckSquare
 } from 'lucide-react';
+import LiveRunner from './LiveRunner';
+import IdeView from './IdeView';
 
 // ─── Keyboard activation for clickable cards ───────────────────────────────────
 const activateOnKey = (fn) => (e) => {
@@ -45,6 +47,7 @@ function Toast({ toasts, removeToast }) {
 function GlobalHeader({ currentView, setCurrentView, role, setRole, addToast }) {
   const navItems = [
     { id: 'start',     label: 'Start AI' },
+    { id: 'ide',       label: 'Web IDE' },
     { id: 'view',      label: 'View AI (Live)' },
     { id: 'portfolio', label: 'Portfolio (Ledger)' },
     { id: 'lms',       label: 'Faculty LMS' },
@@ -449,14 +452,12 @@ function LandingView({ setCurrentView }) {
 }
 
 // ─── Start AI View (HWPX Image 2 & 3 Wireframe Implementation) ────────────────
-function StartAIView({ setCurrentView, role, addToast }) {
+function StartAIView({ setCurrentView, role, addToast, onSession }) {
   const [hwType, setHwType] = useState('local');
   const [codeTab, setCodeTab] = useState('jupyter');
   const [copied, setCopied] = useState(false);
   const [showWizardModal, setShowWizardModal] = useState(false);
-  const [wizardStep, setWizardStep] = useState(1);
-  const [selectedModel, setSelectedModel] = useState('llama3-8b');
-  const [provisionProgress, setProvisionProgress] = useState(0);
+  const [env, setEnv] = useState(null);
 
   // Snippet templates
   const snippets = {
@@ -483,33 +484,13 @@ plaiground.init(
 "`,
   };
 
-  const models = [
-    { id: 'llama3-8b', name: 'Llama-3 8B QLoRA', size: '4.8 GB VRAM', desc: '한국어 캡스톤 디자인 파인튜닝 최적화' },
-    { id: 'deepseek-7b', name: 'DeepSeek-R1 Distill 7B', size: '5.2 GB VRAM', desc: '추론 및 추론 논리 디버깅 특화' },
-    { id: 'mistral-7b', name: 'Mistral 7B Instruct v0.3', size: '4.5 GB VRAM', desc: '경량화 실습 및 빠른 에폭 주행' },
-  ];
-
-  const startWizard = () => {
-    setWizardStep(1);
-    setProvisionProgress(0);
-    setShowWizardModal(true);
-  };
-
+  // 하드웨어 패널을 실제 감지값으로 채운다 (ai_set_demo/.env + docker 상태).
   useEffect(() => {
-    if (showWizardModal && wizardStep === 3) {
-      const interval = setInterval(() => {
-        setProvisionProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setTimeout(() => setWizardStep(4), 400);
-            return 100;
-          }
-          return prev + 25;
-        });
-      }, 350);
-      return () => clearInterval(interval);
-    }
-  }, [showWizardModal, wizardStep]);
+    fetch('/api/status')
+      .then((r) => r.json())
+      .then(setEnv)
+      .catch(() => setEnv(null));
+  }, []);
 
   const handleCopy = () => {
     setCopied(true);
@@ -570,7 +551,7 @@ plaiground.init(
               )}
 
               <button
-                onClick={startWizard}
+                onClick={() => setShowWizardModal(true)}
                 className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-mono font-bold rounded-sm border border-blue-500 transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20"
               >
                 <Play className="w-3.5 h-3.5" />
@@ -637,13 +618,22 @@ plaiground.init(
                   [COST: $0/hr]
                 </span>
               </div>
-              <p className="text-xs font-mono text-slate-200 mb-0.5">NVIDIA GeForce RTX 3080</p>
-              <p className="text-[11px] font-mono text-slate-500">10,240 MB / 10,240 MB (10GB VRAM)</p>
+              <p className="text-xs font-mono text-slate-200 mb-0.5">
+                {env?.gpu_name || '감지된 GPU 없음'}
+              </p>
+              <p className="text-[11px] font-mono text-slate-500">
+                {env?.driver_version ? `NVIDIA Driver ${env.driver_version}` : 'Driver 정보 없음'}
+                {env?.wsl2_ready && ' · WSL2 READY'}
+              </p>
               <p className="text-xs text-slate-400 font-sans mt-2 leading-relaxed">
-                NVIDIA Driver &amp; CUDA 12.1 정상 감지. QLoRA 최적화 파이프라인 즉시 적용 가능.
+                {env === null
+                  ? 'API 서버 미연결 — python -m ai_set_demo.api_server 를 실행하세요.'
+                  : env.image_exists
+                    ? `베이스 이미지 ${env.image} 준비 완료. 컨테이너에서 즉시 학습 가능.`
+                    : '베이스 이미지가 없습니다. docker build 를 먼저 실행하세요.'}
               </p>
               <div className="h-1.5 bg-slate-800 rounded-sm overflow-hidden mt-3">
-                <div className="h-full bg-blue-500 w-full transition-all" />
+                <div className={`h-full transition-all ${env?.image_exists ? 'bg-blue-500 w-full' : 'bg-slate-600 w-1/4'}`} />
               </div>
             </div>
 
@@ -767,189 +757,12 @@ plaiground.init(
 
       </div>
 
-      {/* 4-Step Interactive Start AI Wizard Modal */}
       {showWizardModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0B0F19] border border-slate-800 rounded-md max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
-            <button
-              onClick={() => setShowWizardModal(false)}
-              className="absolute top-4 right-4 text-slate-500 hover:text-slate-300"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-blue-400" />
-              <h2 className="text-sm font-mono font-bold text-slate-100 uppercase tracking-wider">
-                Start AI — 4-Step Interactive Pipeline Wizard
-              </h2>
-            </div>
-
-            {/* Step Indicator */}
-            <div className="grid grid-cols-4 gap-2 text-[10px] font-mono text-slate-500 border-y border-slate-800 py-3">
-              {[
-                '1. GPU Check',
-                '2. AI Model List',
-                '3. Auto Setup',
-                '4. Launch Web IDE'
-              ].map((s, idx) => (
-                <div
-                  key={idx}
-                  className={`px-2 py-1 rounded text-center font-bold ${
-                    wizardStep === idx + 1
-                      ? 'bg-blue-600 text-white border border-blue-500'
-                      : wizardStep > idx + 1
-                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-900'
-                      : 'bg-slate-900 text-slate-500 border border-slate-800'
-                  }`}
-                >
-                  {s}
-                </div>
-              ))}
-            </div>
-
-            {/* Wizard Step Contents */}
-            {wizardStep === 1 && (
-              <div className="space-y-4">
-                <p className="text-xs text-slate-300 font-sans">
-                  감지된 하드웨어 사양에 맞춰 실행할 GPU 컴퓨팅 환경을 선택하세요:
-                </p>
-                <div className="space-y-2" role="radiogroup" aria-label="Compute hardware">
-                  <div
-                    role="radio"
-                    aria-checked={hwType === 'local'}
-                    tabIndex={0}
-                    onClick={() => setHwType('local')}
-                    onKeyDown={activateOnKey(() => setHwType('local'))}
-                    className={`p-3 border rounded-sm cursor-pointer flex justify-between items-center text-xs font-mono focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 ${
-                      hwType === 'local' ? 'border-blue-500 bg-slate-900' : 'border-slate-800 bg-slate-950'
-                    }`}
-                  >
-                    <span>[LOCAL GPU: NVIDIA RTX 3080 10GB]</span>
-                    <span className="text-emerald-400 font-bold">$0/hr (BYOG)</span>
-                  </div>
-                  <div
-                    role="radio"
-                    aria-checked={hwType === 'cloud'}
-                    tabIndex={0}
-                    onClick={() => setHwType('cloud')}
-                    onKeyDown={activateOnKey(() => setHwType('cloud'))}
-                    className={`p-3 border rounded-sm cursor-pointer flex justify-between items-center text-xs font-mono focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 ${
-                      hwType === 'cloud' ? 'border-blue-500 bg-slate-900' : 'border-slate-800 bg-slate-950'
-                    }`}
-                  >
-                    <span>[RUNPOD CLOUD: NVIDIA RTX A5000 24GB]</span>
-                    <span className="text-blue-400 font-bold">$0.27/hr</span>
-                  </div>
-                </div>
-                <div className="flex justify-end pt-2">
-                  <button
-                    onClick={() => setWizardStep(2)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-bold rounded-sm border border-blue-500"
-                  >
-                    Next: Select AI Model &rarr;
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {wizardStep === 2 && (
-              <div className="space-y-4">
-                <p className="text-xs text-slate-300 font-sans">
-                  선택한 {hwType === 'local' ? 'RTX 3080 (10GB)' : 'A5000 (24GB)'} 사양에 맞춤 추천된 AI 모델 리스트입니다:
-                </p>
-                <div className="space-y-2" role="radiogroup" aria-label="AI model">
-                  {models.map((m) => (
-                    <div
-                      key={m.id}
-                      role="radio"
-                      aria-checked={selectedModel === m.id}
-                      tabIndex={0}
-                      onClick={() => setSelectedModel(m.id)}
-                      onKeyDown={activateOnKey(() => setSelectedModel(m.id))}
-                      className={`p-3 border rounded-sm cursor-pointer text-xs font-mono transition-all focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 ${
-                        selectedModel === m.id
-                          ? 'border-blue-500 bg-slate-900 text-slate-100'
-                          : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex justify-between font-bold text-slate-200 mb-0.5">
-                        <span>{m.name}</span>
-                        <span className="text-blue-400">{m.size}</span>
-                      </div>
-                      <p className="text-[11px] font-sans text-slate-400">{m.desc}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between pt-2">
-                  <button
-                    onClick={() => setWizardStep(1)}
-                    className="px-3 py-1.5 bg-slate-900 text-slate-400 font-mono text-xs rounded-sm border border-slate-800"
-                  >
-                    &larr; Back
-                  </button>
-                  <button
-                    onClick={() => setWizardStep(3)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-bold rounded-sm border border-blue-500"
-                  >
-                    Next: Provision Environment &rarr;
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {wizardStep === 3 && (
-              <div className="space-y-4 text-center py-4">
-                <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-xs font-mono font-bold text-slate-200 uppercase">
-                  Automated Environment Provisioning in progress...
-                </p>
-                <p className="text-[11px] font-mono text-slate-400">
-                  Target Model: <span className="text-blue-400">{models.find(m => m.id === selectedModel)?.name}</span>
-                </p>
-                <div className="w-full bg-slate-950 border border-slate-800 h-3 rounded-sm overflow-hidden p-0.5">
-                  <div
-                    className="bg-blue-500 h-full rounded-sm transition-all duration-300"
-                    style={{ width: `${provisionProgress}%` }}
-                  />
-                </div>
-                <div className="text-[11px] font-mono text-slate-500 text-left bg-slate-950 p-3 rounded border border-slate-800 space-y-1">
-                  <p className="text-emerald-400">[OK] Checking CUDA 12.1 Driver compatibility</p>
-                  <p className="text-emerald-400">[OK] Binding plaiground.init() exception interceptor</p>
-                  {provisionProgress >= 75 && (
-                    <p className="text-blue-400 animate-pulse">[INIT] Allocating VRAM buffers for {selectedModel}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {wizardStep === 4 && (
-              <div className="space-y-4 text-center py-3">
-                <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-                <p className="text-sm font-mono font-bold text-slate-100 uppercase">
-                  Environment Ready! Transitioning to Web IDE...
-                </p>
-                <p className="text-xs text-slate-400 font-sans">
-                  GPU 사양 체크 및 라이브러리 자동 바인딩이 완료되었습니다. 이제 실시간 시각화 또는 디버깅 포트폴리오를 조회할 수 있습니다.
-                </p>
-                <div className="flex justify-center gap-3 pt-2">
-                  <button
-                    onClick={() => {
-                      setShowWizardModal(false);
-                      setCurrentView('view');
-                      addToast('Web IDE Session launched. Switched to View AI (Live Visualizer).');
-                    }}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold rounded-sm border border-emerald-500 flex items-center gap-2"
-                  >
-                    <LineChart className="w-4 h-4" />
-                    [Launch Web IDE &amp; View AI]
-                  </button>
-                </div>
-              </div>
-            )}
-
-          </div>
-        </div>
+        <LiveRunner
+          onClose={() => setShowWizardModal(false)}
+          onReady={(session) => { onSession?.(session); setCurrentView('ide'); }}
+          addToast={addToast}
+        />
       )}
     </div>
   );
@@ -1584,6 +1397,8 @@ export default function App() {
   const [currentView, setCurrentView] = useState('start');
   const [role, setRole] = useState('admin'); // 'admin' or 'user'
   const [toasts, setToasts] = useState([]);
+  // 환경 세팅이 끝나면 /api/setup의 ready 응답이 여기 담긴다 (IDE 접속 정보).
+  const [session, setSession] = useState(null);
 
   const addToast = useCallback((message) => {
     const id = Date.now() + Math.random();
@@ -1606,7 +1421,8 @@ export default function App() {
       />
 
       {currentView === 'landing'   && <LandingView   setCurrentView={setCurrentView} />}
-      {currentView === 'start'     && <StartAIView   setCurrentView={setCurrentView} role={role} addToast={addToast} />}
+      {currentView === 'start'     && <StartAIView   setCurrentView={setCurrentView} role={role} addToast={addToast} onSession={setSession} />}
+      {currentView === 'ide'       && <IdeView       session={session} setCurrentView={setCurrentView} addToast={addToast} />}
       {currentView === 'view'      && <ViewAIView    addToast={addToast} />}
       {currentView === 'portfolio' && <PortfolioView addToast={addToast} />}
       {currentView === 'lms'       && <LmsView       setCurrentView={setCurrentView} addToast={addToast} />}

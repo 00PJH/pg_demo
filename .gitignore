@@ -44,5 +44,10 @@ data/
 # graphify 코드 그래프 산출물 (재생성 가능)
 graphify-out/
 
+# impeccable 디자인 리뷰 스크린샷 및 훅 캐시 (재생성 가능)
+# design.json은 디자인 시스템 정의라 추적 대상 — 여기서 제외하지 않는다.
+.impeccable/review/
+.impeccable/hook.cache.json
+
 # Windows 폴더 메타데이터
 desktop.ini

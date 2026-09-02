@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Schibsted Grotesk", "Noto Sans KR", sans-serif;
+  --font-sans: "Noto Sans KR", "Schibsted Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-void: #050505;
+  --color-pit: #0a0a0c;
+  --color-ink: #f2f0eb;
+  --color-mist: #a8a49b;
+  --color-dim: #8d897f;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-glass: rgba(255, 255, 255, 0.05);
+  --color-gold: #e8b34b;
+  --color-gold-deep: #9a6c1c;
+  --color-cobalt: #5b78ff;
+  --color-mint: #4ade9b;
+  --color-ember: #fb7185;
+
+  --animate-rise: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-rise-late: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+  --animate-rise-later: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+  --animate-breathe: breathe 7s ease-in-out infinite;
+  --animate-drift: drift 9s ease-in-out infinite;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.015); filter: brightness(1.12); }
+}
+@keyframes drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #050505;
+  color: #f2f0eb;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  caret-color: #e8b34b;
+}
+
+::selection {
+  background: rgba(232, 179, 75, 0.28);
+  color: #f8f6f0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(232, 179, 75, 0.35) transparent;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(232, 179, 75, 0.3); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+:focus-visible {
+  outline: 2px solid rgba(232, 179, 75, 0.75);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 별빛 노이즈 — 히어로 배경 전용 */
+.starfield {
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(255, 255, 255, 0.5), transparent 100%),
+    radial-gradient(1px 1px at 34% 8%, rgba(255, 255, 255, 0.3), transparent 100%),
+    radial-gradient(1.5px 1.5px at 58% 16%, rgba(255, 255, 255, 0.4), transparent 100%),
+    radial-gradient(1px 1px at 78% 30%, rgba(255, 255, 255, 0.35), transparent 100%),
+    radial-gradient(1px 1px at 90% 12%, rgba(255, 255, 255, 0.45), transparent 100%),
+    radial-gradient(1px 1px at 5% 55%, rgba(255, 255, 255, 0.3), transparent 100%),
+    radial-gradient(1.5px 1.5px at 25% 42%, rgba(255, 255, 255, 0.25), transparent 100%),
+    radial-gradient(1px 1px at 68% 45%, rgba(255, 255, 255, 0.3), transparent 100%),
+    radial-gradient(1px 1px at 44% 60%, rgba(255, 255, 255, 0.2), transparent 100%),
+    radial-gradient(1.5px 1.5px at 85% 58%, rgba(255, 255, 255, 0.3), transparent 100%);
+}
+
+/* 액체금속 오브 — 레퍼런스의 유리질 구체를 CSS 레이어로 재현 */
+.orb-body {
+  /* position은 마크업의 absolute 유틸리티가 담당 — 여기서 지정하면
+     unlayered 규칙이 @layer utilities를 이겨 레이아웃이 무너진다 */
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 16%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.15) 10%, transparent 24%),
+    radial-gradient(circle at 74% 26%, rgba(91, 120, 255, 0.35), transparent 46%),
+    radial-gradient(circle at 62% 88%, rgba(232, 179, 75, 0.75), rgba(154, 108, 28, 0.4) 34%, transparent 62%),
+    radial-gradient(circle at 24% 78%, rgba(240, 196, 96, 0.5), transparent 45%),
+    radial-gradient(circle at 50% 45%, #16161c 0%, #0a0a0e 55%, #060608 100%);
+  box-shadow:
+    0 -30px 140px rgba(232, 179, 75, 0.2),
+    0 30px 120px rgba(91, 120, 255, 0.08),
+    inset 0 -60px 110px rgba(232, 179, 75, 0.35),
+    inset 0 3px 10px rgba(255, 255, 255, 0.28),
+    inset 0 40px 90px rgba(91, 120, 255, 0.08),
+    inset 0 0 80px rgba(0, 0, 0, 0.7);
+}
+/* 유리질 시엔(sheen) — 상단을 감싸는 얇은 광택 밴드 */
+.orb-body::after {
+  content: '';
+  position: absolute;
+  inset: 1.5%;
+  border-radius: 50%;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 22%, transparent 42%);
+  -webkit-mask: radial-gradient(circle at 50% 55%, transparent 62%, #000 74%);
+  mask: radial-gradient(circle at 50% 55%, transparent 62%, #000 74%);
+}
+.orb-rim {
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 100%, rgba(240, 196, 96, 0.9), rgba(232, 179, 75, 0.35) 40%, transparent 70%);
+  filter: blur(18px);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* 한글 제목이 음절 단위로 꺾이지 않게 */
+h1, h2, h3, p { word-break: keep-all; }

@@ -125,10 +125,28 @@ def generate_portfolio(telemetry: dict[str, Any]) -> PortfolioSchema:
         raw = _call_gemini(telemetry)
         schema = PortfolioSchema.model_validate(raw)
         print("[LLM] ✅ Gemini 응답 파싱 및 Pydantic 검증 완료.")
-        return schema
+        return _backfill_overview(schema, telemetry)
     except Exception as e:
         print(f"[LLM] ⚠️  Gemini 호출 실패 ({e}). 한국어 표준 Mock 데이터로 안전하게 전환합니다.")
-        return PortfolioSchema.model_validate(_MOCK_DATA)
+        return _backfill_overview(PortfolioSchema.model_validate(_MOCK_DATA), telemetry)
+
+
+def _backfill_overview(schema: PortfolioSchema, telemetry: dict[str, Any]) -> PortfolioSchema:
+    """LLM이 'N/A'로 비운 개요 필드를 텔레메트리 실측값으로 채운다.
+
+    텔레메트리에 이미 있는 사실이 N/A로 렌더링되는 것을 막는 최종 방어선.
+    """
+    ov = telemetry.get("overview", {}) or {}
+    hp = (telemetry.get("benchmarks", {}) or {}).get("hyperparameters", {}) or {}
+    fallbacks = {
+        "title": ov.get("project_name"),
+        "base_model": hp.get("base_model") or ov.get("project_name"),
+        "task_type": ov.get("task_type"),
+    }
+    for field, value in fallbacks.items():
+        if value and str(getattr(schema.overview, field, "")).strip() in ("", "N/A", "n/a"):
+            setattr(schema.overview, field, value)
+    return schema
 
 
 # 호환성을 위한 alias

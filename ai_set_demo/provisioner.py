@@ -112,6 +112,9 @@ def ensure_ready(spec: ModelSpec, host_port: int = _HOST_PORT) -> EnvReport:
         *(["--gpus", "all"] if gpu_available else []),
         "-v", f"{_REPO_ROOT}:/workspace",
         "-p", f"127.0.0.1:{host_port}:8080",
+        # 웹 IDE 터미널에서 `python ai_set_demo/generated/train_x.py`가 바로 되도록.
+        # 없으면 생성 스크립트의 `from portfolio_demo.telemetry ...`가 ImportError.
+        "-e", "PYTHONPATH=/workspace",
         *(["-e", f"MODEL_REQUIREMENTS_FILE={requirements_container_path}"] if requirements_container_path else []),
         _IMAGE,
     ]

@@ -59,7 +59,10 @@ def main() -> None:
     _simulate_oom_error()
 
     # Step 3: 가상 학습 데이터 기록
-    tracker = DiffStackTracker()
+    tracker = DiffStackTracker(
+        project_name="klue/bert-base 한국어 텍스트 분류 파인튜닝 (데모 파이프라인)",
+        task_type="텍스트 분류 (파인튜닝)",
+    )
     tracker.log_dataset(
         raw_len=50_000,
         processed_len=40_800,
@@ -70,7 +73,7 @@ def main() -> None:
     tracker.log_benchmarks(
         baseline_dict={"f1": 0.412, "loss": 2.34},
         final_dict={"f1": 0.783, "loss": 1.12},
-        params_dict={"lr": 2e-5, "epochs": 3, "batch_size": 16, "gradient_accumulation_steps": 4},
+        params_dict={"base_model": "klue/bert-base", "lr": 2e-5, "epochs": 3, "batch_size": 16, "gradient_accumulation_steps": 4},
     )
     print("[Step 3] ✅ Dataset stats and benchmark metrics logged.")
 
