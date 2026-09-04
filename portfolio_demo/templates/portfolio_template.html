@@ -71,14 +71,14 @@
     <section class="card p-8 glow-blue grid-section">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div class="flex-1 min-w-0">
-          <p class="section-label">🤖 AI 실무 문제 해결 포트폴리오 — DiffStack Engine</p>
+          <p class="section-label">AI 실무 문제 해결 포트폴리오 — DiffStack Engine</p>
           <h1 class="text-2xl sm:text-3xl font-bold text-white leading-tight mb-3">
             {{ portfolio.overview.title }}
           </h1>
           <div class="flex flex-wrap gap-2 mt-3">
-            <span class="badge badge-blue">⚡ 기반 모델: {{ portfolio.overview.base_model }}</span>
-            <span class="badge badge-purple">🎯 수행 태스크: {{ portfolio.overview.task_type }}</span>
-            <span class="badge badge-green">✅ 데이터 무결성 검증 완료</span>
+            <span class="badge badge-blue">기반 모델: {{ portfolio.overview.base_model }}</span>
+            <span class="badge badge-purple">수행 태스크: {{ portfolio.overview.task_type }}</span>
+            <span class="badge badge-green">데이터 무결성 검증 완료</span>
           </div>
         </div>
         <!-- SHA-256 워터마크 -->
@@ -98,15 +98,15 @@
       <!-- 환경 메타데이터 영역 -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <p class="section-label">💻 하드웨어 환경</p>
+          <p class="section-label">하드웨어 환경</p>
           <p class="text-sm text-slate-300 font-mono">{{ portfolio.verification.hardware }}</p>
         </div>
         <div>
-          <p class="section-label">⏱ 총 학습 소요 시간</p>
+          <p class="section-label">총 학습 소요 시간</p>
           <p class="text-sm text-slate-300 font-mono">{{ portfolio.verification.total_training_time }}</p>
         </div>
         <div>
-          <p class="section-label">🛡 검증 엔진</p>
+          <p class="section-label">검증 엔진</p>
           <p class="text-sm text-slate-300 font-mono">plAI-ground / DiffStack v1.0</p>
         </div>
       </div>
@@ -116,7 +116,7 @@
 
       <!-- ─── 카드 2: 데이터 엔지니어링 파이프라인 ────────────────────── -->
       <section class="card p-7 grid-section" style="animation-delay:0.1s">
-        <p class="section-label">📊 데이터 엔지니어링 파이프라인</p>
+        <p class="section-label">데이터 엔지니어링 파이프라인</p>
         {# LLM이 데이터셋 이름을 모르면 N/A를 찍는 대신 제목 줄을 생략한다 #}
         {% if portfolio.data_engineering.dataset_name and portfolio.data_engineering.dataset_name | upper != 'N/A' %}
         <h2 class="text-lg font-semibold text-white mb-2">{{ portfolio.data_engineering.dataset_name }}</h2>
@@ -138,7 +138,7 @@
 
       <!-- ─── 카드 3: 성능 벤치마크 델타 (Baseline vs Optimized) ─────── -->
       <section class="card p-7 grid-section" style="animation-delay:0.2s">
-        <p class="section-label">📈 성능 벤치마크 델타 (개선 성과)</p>
+        <p class="section-label">성능 벤치마크 델타 (개선 성과)</p>
         <h2 class="text-lg font-semibold text-white mb-4">{{ portfolio.benchmarks.evaluation_metric }}</h2>
 
         <!-- Baseline vs Optimized 막대 비교 -->
@@ -181,7 +181,7 @@
 
     <!-- ─── 카드 4: 장애 해결 및 트러블슈팅 서사 ──────────────────── -->
     <section class="card p-7 grid-section" style="animation-delay:0.3s">
-      <p class="section-label">🔥 장애 해결 및 트러블슈팅 서사 (STAR 기반 검증)</p>
+      <p class="section-label">장애 해결 및 트러블슈팅 서사 (STAR 기반 검증)</p>
       <div class="flex flex-wrap items-center gap-3 mb-6">
         <h2 class="text-lg font-semibold text-white">오류 복구 및 디버깅:</h2>
         <span class="badge badge-red font-mono">{{ portfolio.troubleshooting.error_type }}</span>
@@ -189,20 +189,20 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
         <div class="space-y-2">
-          <p class="section-label">🔍 상황 및 근본 원인 분석</p>
+          <p class="section-label">상황 및 근본 원인 분석</p>
           <p class="text-sm text-slate-300 leading-relaxed bg-slate-900/40 p-3.5 rounded-lg border border-slate-700/40">
             {{ portfolio.troubleshooting.root_cause }}
           </p>
         </div>
         <div class="space-y-2">
-          <p class="section-label">🛠 조치 및 해결 코드 Diff</p>
+          <p class="section-label">조치 및 해결 코드 Diff</p>
           <div class="diff-block">{% set lines = portfolio.troubleshooting.resolution_diff.split('\n') %}{% for line in lines %}{% if line.startswith('+') %}<span class="diff-add">{{ line }}</span>
 {% elif line.startswith('-') %}<span class="diff-remove">{{ line }}</span>
 {% else %}<span class="diff-neutral">{{ line }}</span>
 {% endif %}{% endfor %}</div>
         </div>
         <div class="space-y-2">
-          <p class="section-label">💡 엔지니어링 교훈 & 인사이트</p>
+          <p class="section-label">엔지니어링 교훈 & 인사이트</p>
           <p class="text-sm text-slate-300 leading-relaxed bg-slate-900/40 p-3.5 rounded-lg border border-slate-700/40">
             {{ portfolio.troubleshooting.engineering_takeaway }}
           </p>

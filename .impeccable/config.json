@@ -2,13 +2,6 @@
   "detector": {
     "ignoreRules": [],
     "ignoreFiles": [],
-    "ignoreValues": [
-      {
-        "rule": "codex-grid-background",
-        "value": "two-axis grid-line gradient background",
-        "createdAt": "2026-09-02T08:12:54.657Z",
-        "reason": "finish reviewer adjudicated: telemetry graph-paper metaphor on an AI-training measurement product, hero-only, ellipse-masked, 4% alpha - detector's own measurement-surface carve-out applies; recorded in DESIGN.md as hero-only Gridfield"
-      }
-    ]
+    "ignoreValues": []
   }
 }

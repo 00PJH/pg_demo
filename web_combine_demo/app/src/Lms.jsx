@@ -47,13 +47,13 @@ export default function Lms({ go, addToast }) {
       </div>
 
       {/* KPI */}
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="mt-8 border border-line rounded-lg grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-line">
         {[
           ['학생 활성화율', '58 / 60', '2명 미시작 · 96.6%', '#f2f0eb'],
           ['누적 해결 예외', '243건', '학생당 평균 4.05건', '#fb7185'],
           ['주간 평균 실습', '6시간 12분', 'BYOG 72% · Cloud 28%', '#4ade9b'],
         ].map(([label, value, sub, color]) => (
-          <div key={label} className="glass-card rounded-2xl p-5">
+          <div key={label} className="px-5 py-4">
             <p className="text-[12px] text-mist">{label}</p>
             <p className="mt-1 font-display font-bold text-2xl tabular" style={{ color }}>{value}</p>
             <p className="mt-1 text-[11px] text-dim">{sub}</p>
@@ -62,7 +62,7 @@ export default function Lms({ go, addToast }) {
       </div>
 
       {/* 학생 테이블 */}
-      <div className="mt-5 glass-card rounded-3xl p-6">
+      <div className="mt-5 glass-card rounded-lg p-6">
         <p className="text-[13px] font-medium flex items-center gap-2 mb-4">
           <Users className="w-4 h-4 text-cobalt" /> 학생 실습 현황
         </p>
@@ -117,7 +117,7 @@ export default function Lms({ go, addToast }) {
           <button
             key={label}
             onClick={() => addToast?.(`${label} 다운로드가 시작되었습니다. (데모)`)}
-            className="rounded-2xl border border-line p-5 text-left hover:border-gold/40 hover:bg-white/3 transition-colors group"
+            className="rounded-lg border border-line p-5 text-left hover:border-gold/40 hover:bg-white/3 transition-colors group"
           >
             <p className="text-[14px] font-medium group-hover:text-gold transition-colors">{label}</p>
             <p className="mt-1 text-[12px] text-dim">{detail}</p>

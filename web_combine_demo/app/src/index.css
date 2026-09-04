@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Schibsted Grotesk", "Noto Sans KR", sans-serif;
-  --font-sans: "Noto Sans KR", "Schibsted Grotesk", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Geist", "Pretendard Variable", sans-serif;
+  --font-sans: "Pretendard Variable", "Geist", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
 
   --color-void: #050505;
   --color-pit: #0a0a0c;
@@ -21,16 +21,11 @@
   --animate-rise: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-rise-late: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
   --animate-rise-later: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
-  --animate-drift: drift 9s ease-in-out infinite;
 }
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
-}
-@keyframes drift {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
 }
 
 html {
@@ -64,30 +59,67 @@ body {
   border-radius: 4px;
 }
 
-/* 텔레메트리 그리드 — 히어로 배경. 학습 곡선이 그려지는 모눈종이 메타포 */
-.gridfield {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 56px 56px;
-  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 60% 30%, #000 30%, transparent 75%);
-  mask-image: radial-gradient(ellipse 90% 80% at 60% 30%, #000 30%, transparent 75%);
-}
-
-/* 히어로 우측 원장 스택 뒤의 골드 광원 */
-.ledger-glow {
-  background: radial-gradient(ellipse at 65% 45%, rgba(232, 179, 75, 0.22), rgba(91, 120, 255, 0.08) 45%, transparent 70%);
-  filter: blur(30px);
+/* 인쇄물처럼 괘선으로 서는 평면 패널 — 유리·블러·글로우 없음.
+   (이름은 유지: 전 화면이 참조하는 재질 토큰이라 여기 한 곳만 바꾸면 된다) */
+.glass-clear {
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.11);
 }
 
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* ─── 페이지 전환 — View Transitions API (웹 표준) ─────────────────────────────
+   이전 화면은 살짝 위로 빠지며 사라지고, 새 화면은 아래에서 블러가 걷히며 든다.
+   상단 바는 자기 이름을 가져 전환 중에도 제자리에 고정된다. */
+::view-transition-old(root) {
+  animation: vt-out 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+::view-transition-new(root) {
+  animation: vt-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes vt-out {
+  to { opacity: 0; transform: translateY(-10px); }
+}
+@keyframes vt-in {
+  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+[data-topbar] { view-transition-name: topbar; }
+::view-transition-old(topbar),
+::view-transition-new(topbar) { animation: none; }
+
+/* VT 미지원 브라우저 폴백 — 새 화면 등장만 부드럽게 */
+.vt-fallback { animation: rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  .vt-fallback { animation: none !important; }
+}
+
+/* PDF 내보내기(브라우저 인쇄) — 다크 토큰을 종이용 라이트 값으로 뒤집는다 */
+@media print {
+  :root {
+    --color-void: #ffffff;
+    --color-pit: #f5f5f4;
+    --color-ink: #111111;
+    --color-mist: #333333;
+    --color-dim: #666666;
+    --color-line: #d9d9d9;
+    --color-glass: #ffffff;
+    --color-gold: #8a6414;
+    --color-cobalt: #3450d6;
+    --color-mint: #0f8a5f;
+    --color-ember: #c03050;
+  }
+  body { background: #ffffff; color: #111111; }
+}
 
 /* 한글 제목이 음절 단위로 꺾이지 않게.
    @layer base 안에 둬야 break-all 같은 유틸리티가 이길 수 있다 */

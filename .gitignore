@@ -24,8 +24,9 @@ portfolio_demo/.telemetry/
 portfolio_demo/portfolio_output.html
 portfolio_demo/portfolio_output.json
 
-# 커뮤니티 추천·조회 누적 카운트 (런타임 상태)
+# 커뮤니티 추천·조회 누적 카운트 + 사용자 댓글 (런타임 상태)
 community_demo/state.json
+community_demo/comments.json
 
 # ai_set_demo 생성 산출물 (재생성 가능)
 ai_set_demo/generated/

@@ -125,7 +125,8 @@ class _Handler(SimpleHTTPRequestHandler):
             pass  # 브라우저가 탭을 닫음
 
     def log_message(self, fmt: str, *args) -> None:
-        if "/api/" in (args[0] if args else ""):
+        # send_error()는 args[0]에 HTTPStatus를 넘긴다 - str()로 감싸지 않으면 404마다 핸들러가 죽는다
+        if args and "/api/" in str(args[0]):
             super().log_message(fmt, *args)  # 정적 파일 요청 로그는 소음이라 생략
 
 

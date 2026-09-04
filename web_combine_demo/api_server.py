@@ -15,12 +15,13 @@ ponytail: 인증 없이 127.0.0.1에만 바인딩. docker/학습을 실행하므
 
 import json
 import os
+import socket
 import subprocess
 import sys
 from functools import partial
 from http.server import ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:  # `python web_combine_demo/api_server.py` 직접 실행 대비
@@ -32,6 +33,59 @@ from community_demo import service as community  # noqa: E402
 _STATIC_DIR = Path(__file__).resolve().parent / "app" / "dist"
 _PORTFOLIO_DIR = _REPO_ROOT / "portfolio_demo"
 _DEFAULT_PORT = 8770
+
+
+_IDE_URL = "http://127.0.0.1:8080"
+
+
+def _ide_running() -> bool:
+    """code-server(8080) 응답 여부 — Start AI를 거치지 않아도 IDE에 들어갈 수 있게."""
+    with socket.socket() as s:
+        s.settimeout(0.3)
+        return s.connect_ex(("127.0.0.1", 8080)) == 0
+
+
+def _build_markdown(d: dict) -> str:
+    """portfolio_output.json → 내보내기용 Markdown."""
+    ov, de, bm, ts, vf = d["overview"], d["data_engineering"], d["benchmarks"], d["troubleshooting"], d["verification"]
+    lines = [
+        f"# {ov['title']}",
+        "",
+        f"- 기반 모델: {ov['base_model']}",
+        f"- 태스크: {ov['task_type']}",
+        f"- 하드웨어: {vf['hardware']}",
+        f"- 검증 엔진: plAI-ground / DiffStack v1.0",
+        f"- SHA-256 무결성 해시: `{vf['integrity_hash']}`",
+        f"- 발급 일시: {vf.get('generated_at', '')[:19]} UTC",
+        "",
+        "## 성능 벤치마크",
+        "",
+        f"- 지표: {bm['evaluation_metric']}",
+        f"- Baseline {bm['baseline_performance']} → Fine-tuned {bm['optimized_performance']} ({bm['improvement_rate']})",
+        "",
+        "## 데이터 전처리",
+        "",
+        *[f"- {t}" for t in de["preprocessing_techniques"]],
+        "",
+        de["data_efficiency_impact"],
+        "",
+        "## 학습 방법 · 성능 향상",
+        "",
+        *[f"- {m}" for m in bm["optimization_methods"]],
+        "",
+        "## 에러 · 문제 해결",
+        "",
+        f"- 에러: {ts['error_type']}",
+        f"- 근본 원인: {ts['root_cause']}",
+        "",
+        "```diff",
+        ts["resolution_diff"],
+        "```",
+        "",
+        f"> {ts['engineering_takeaway']}",
+        "",
+    ]
+    return "\n".join(lines)
 
 
 def _telemetry_summary() -> dict:
@@ -58,8 +112,17 @@ class _Handler(_BaseHandler):
         route = urlparse(self.path)
         if route.path == "/api/community/posts":
             self._send_json(community.list_posts())
+        elif route.path == "/api/community/comments":
+            try:
+                self._send_json(community.list_comments(parse_qs(route.query).get("post_id", [""])[0]))
+            except KeyError as exc:
+                self._send_json({"error": str(exc)}, status=404)
         elif route.path == "/api/portfolio/run":
             self._stream_portfolio_run()
+        elif route.path == "/api/ide/status":
+            self._send_json({"running": _ide_running(), "ide_url": _IDE_URL})
+        elif route.path == "/api/portfolio/export.md":
+            self._send_portfolio_md()
         elif route.path == "/api/portfolio/data":
             self._send_portfolio_data()
         elif route.path == "/api/portfolio/output":
@@ -80,18 +143,33 @@ class _Handler(_BaseHandler):
         route = urlparse(self.path)
         try:
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0)) or 0) or b"{}")
-        except json.JSONDecodeError:
-            self._send_json({"error": "잘못된 JSON 본문입니다."}, status=400)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            self._send_json({"error": "잘못된 JSON 본문입니다 (UTF-8 인코딩 필요)."}, status=400)
             return
         try:
             if route.path == "/api/community/interact":
                 self._send_json(community.interact(body.get("post_id", ""), body.get("action", "")))
             elif route.path == "/api/community/practice":
                 self._send_json(community.stage_practice(body.get("post_id", "")))
+            elif route.path == "/api/community/comment":
+                self._send_json(community.add_comment(body.get("post_id", ""), body.get("author", ""), body.get("text", "")))
             else:
                 self._send_json({"error": "알 수 없는 엔드포인트입니다."}, status=404)
         except (KeyError, ValueError) as exc:
             self._send_json({"error": str(exc)}, status=400)
+
+    def _send_portfolio_md(self) -> None:
+        path = _PORTFOLIO_DIR / "portfolio_output.json"
+        if not path.exists():
+            self._send_json({"error": "포트폴리오가 아직 생성되지 않았습니다."}, status=404)
+            return
+        body = _build_markdown(json.loads(path.read_text(encoding="utf-8"))).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/markdown; charset=utf-8")
+        self.send_header("Content-Disposition", 'attachment; filename="plaiground_portfolio.md"')
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def _send_portfolio_data(self) -> None:
         """렌더러가 저장한 포트폴리오 스키마 JSON — 프론트엔드 네이티브 렌더링용."""

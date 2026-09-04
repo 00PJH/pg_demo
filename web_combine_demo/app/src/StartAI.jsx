@@ -19,7 +19,7 @@ function lineTone(line) {
 
 function StatusRow({ ok, label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-line bg-pit px-4 py-3 text-[13px]">
+    <div className="flex items-center justify-between px-4 py-3 text-[13px]">
       <span className="text-mist">{label}</span>
       <span className={`flex items-center gap-1.5 font-medium font-mono text-[12px] ${ok ? 'text-mint' : 'text-ember'}`}>
         {ok ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
@@ -118,7 +118,7 @@ export default function StartAI({ go, onSession, addToast }) {
       </ol>
 
       {error && (
-        <div className="mt-6 flex items-start gap-2.5 rounded-2xl border border-ember/40 bg-ember/10 p-4 text-[13px] text-ember">
+        <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-ember/40 bg-ember/10 p-4 text-[13px] text-ember">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span className="leading-relaxed">{error}</span>
         </div>
@@ -134,10 +134,13 @@ export default function StartAI({ go, onSession, addToast }) {
           )}
           {status && (
             <>
-              <StatusRow ok={status.docker_running} label="Docker 데몬" value={status.docker_running ? 'RUNNING' : 'STOPPED'} />
-              <StatusRow ok={status.image_exists} label={`베이스 이미지 (${status.image})`} value={status.image_exists ? 'READY' : 'MISSING'} />
-              <StatusRow ok={!!status.gpu_name} label="감지된 GPU" value={status.gpu_name || 'NOT DETECTED'} />
-              {status.driver_version && <StatusRow ok label="NVIDIA 드라이버" value={status.driver_version} />}
+              {/* 같은 성격의 상태 행은 하나의 괘선 목록으로 */}
+              <div className="border border-line rounded-md divide-y divide-line bg-pit/40">
+                <StatusRow ok={status.docker_running} label="Docker 데몬" value={status.docker_running ? 'RUNNING' : 'STOPPED'} />
+                <StatusRow ok={status.image_exists} label={`베이스 이미지 (${status.image})`} value={status.image_exists ? 'READY' : 'MISSING'} />
+                <StatusRow ok={!!status.gpu_name} label="감지된 GPU" value={status.gpu_name || 'NOT DETECTED'} />
+                {status.driver_version && <StatusRow ok label="NVIDIA 드라이버" value={status.driver_version} />}
+              </div>
 
               {!status.docker_running && (
                 <p className="text-[12px] text-amber-300">Docker Desktop을 먼저 실행하세요.</p>
@@ -175,7 +178,7 @@ export default function StartAI({ go, onSession, addToast }) {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(m.model_id); }
                 }}
-                className={`rounded-2xl border p-4 cursor-pointer transition-colors ${
+                className={`rounded-lg border p-4 cursor-pointer transition-colors ${
                   selected === m.model_id
                     ? 'border-gold/60 bg-gold/5'
                     : 'border-line bg-pit hover:border-white/20'
@@ -228,7 +231,7 @@ export default function StartAI({ go, onSession, addToast }) {
 
           <div
             ref={logRef}
-            className="h-72 overflow-y-auto rounded-2xl border border-line bg-pit p-4 font-mono text-[12px] leading-6"
+            className="h-72 overflow-y-auto rounded-lg border border-line bg-pit p-4 font-mono text-[12px] leading-6"
           >
             {logs.length === 0 && <p className="text-dim">컨테이너를 준비하는 중입니다…</p>}
             {logs.map((line, i) => (
@@ -237,7 +240,7 @@ export default function StartAI({ go, onSession, addToast }) {
           </div>
 
           {step === 4 && !error && session && (
-            <div className="rounded-2xl border border-mint/30 bg-mint/5 p-5 space-y-3">
+            <div className="rounded-lg border border-mint/30 bg-mint/5 p-5 space-y-3">
               <p className="text-[13px] font-medium text-mint flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
                 환경 세팅 완료 — 학습은 Web IDE에서 직접 실행합니다
